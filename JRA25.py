@@ -10,6 +10,7 @@ class Jra25saone():
     self.ny       = 180
     self.nx       = 360
 
+
   def load_6hr(self, var, DTime, lev=False):
     Year = DTime.year
     Mon  = DTime.month

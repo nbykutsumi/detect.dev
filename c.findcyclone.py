@@ -4,18 +4,18 @@ from datetime import datetime
 import Reanalysis
 import Cyclone
 import calendar
-import os, sys
+import os, sys, shutil
 #--------------------------------------------------
 tstp        = "6hr"
 hinc        = 6
-iyear       = 2004
-eyear       = 2004
-#iyear       = 2014
-#eyear       = 2014
-#imon        = 1
-#emon        = 6
-imon        = 2
-emon        = 4
+#iyear       = 2004
+#eyear       = 2004
+iyear       = 2014
+eyear       = 2014
+imon        = 1
+emon        = 12
+#imon        = 2
+#emon        = 4
 miss        = -9999.0
 #lmodel = ["org","HadGEM2-ES","IPSL-CM5A-MR","CNRM-CM5","MIROC5","inmcm4","MPI-ESM-MR","CSIRO-Mk3-6-0","NorESM1-M","IPSL-CM5B-LR","GFDL-CM3"]
 #lmodel = ["HadGEM2-ES","IPSL-CM5A-MR","CNRM-CM5","MIROC5","inmcm4","MPI-ESM-MR","CSIRO-Mk3-6-0","NorESM1-M","IPSL-CM5B-LR","GFDL-CM3","org"]
@@ -58,7 +58,18 @@ def read_txtlist(iname):
 #****************************************************
 for model in lmodel:
   ra = Reanalysis.Reanalysis(model=model, res=res)
+  #-- copy lat and lon file --
+  prdType  = ra.path_6hr(var_psl(model), datetime(2014,1,1,0)).prdType
+  iNameLat = os.path.join(ra.baseDir, "%s.%s"%(res,prdType), "lat.txt")
+  iNameLon = os.path.join(ra.baseDir, "%s.%s"%(res,prdType), "lon.txt")
+
+  mk_dir( Cyclone.ret_baseDir(model,res))
+  shutil.copy(iNameLat, Cyclone.ret_baseDir(model,res))
+  shutil.copy(iNameLon, Cyclone.ret_baseDir(model,res))
+
+  #---------------------------  
   cy = Cyclone.Cyclone(model=model, res=res)
+  #-----
   varPSL  = var_psl(model)
   varTOPO = var_psl(model)
 

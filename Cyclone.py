@@ -1,6 +1,7 @@
 from numpy import *
 from datetime import datetime, timedelta
 import os
+import socket
 
 #****************************************************
 def read_txtlist(iname):
@@ -12,9 +13,23 @@ def read_txtlist(iname):
   return aout
 
 
+def ret_baseDir(model="JRA55", res="bn"):
+  hostname     = socket.gethostname()
+  if hostname == "well":
+    return "/media/disk2/out/%s/%s"%(model,res)
+  elif hostname in ["mizu","naam"]:
+    return "/tank/utsumi/out/%s/%s"%(model,res)
+
 class Cyclone(object):
   def __init__(self, model="JRA55", res="bn"):
-    self.baseDir = "/media/disk2/out/%s/%s"%(model,res)
+    #------------
+#    hostname     = socket.gethostname()
+#    if hostname == "well":
+#      self.baseDir = "/media/disk2/out/%s/%s"%(model,res)
+#    elif hostname in ["mizu","naam"]:
+#      self.baseDir = "/tank/utsumi/out/%s/%s"%(model,res)
+    self.baseDir = ret_baseDir(model=model, res=res)
+    #------------
     self.Lat     = read_txtlist( os.path.join(self.baseDir, "lat.txt"))
     self.Lon     = read_txtlist( os.path.join(self.baseDir, "lon.txt"))
     self.ny      = len(self.Lat)
