@@ -1,0 +1,1 @@
+/home/utsumi/bin/myfunc/io/GSMaP.py
