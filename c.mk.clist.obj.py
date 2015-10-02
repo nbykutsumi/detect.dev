@@ -13,12 +13,12 @@ import collections
 #singleday= True
 singleday = False
 
-iyear  = 2004
-eyear  = 2004
-#iyear  = 2014
-#eyear  = 2014
-#lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
-lmon   = [2,3,4,5,6,7,8,9]
+#iyear  = 2004
+#eyear  = 2004
+iyear  = 2014
+eyear  = 2014
+lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
+#lmon   = [2,3,4,5,6,7,8,9]
 iday   = 1
 lhour  = [0,6,12,18]
 miss   = -9999.0
@@ -170,14 +170,15 @@ for model in lmodel:
 
       ##---- iedist ------------------------
       da1["iedist"] = ret_a1iedist(da1["ipos"], da1["lastpos"])
-      #---- out dir -----------------------
-      sodir       = cy.path_clist("ipos", year, mon).srcDir
+
+      #----- make dir ----
+      sodir  = cy.path_clist("ipos", year, mon).srcDir
       detect_func.mk_dir(sodir)
 
       #---- save --
       _lstype = lstype_ex + ["iedist"]
       #_lstype = lstype_ex
-
+      
       for stype in _lstype:
         soname = cy.path_clist(stype, year, mon).srcPath
         

@@ -7,9 +7,8 @@ import calendar
 import Reanalysis
 import Cyclone
 
-lYear = [2004]
-lMon  = [2,3,4,5,6]
-#lMon  = range(1,12+1)
+lYear = [2014]
+lMon  = range(1,12+1)
 model = "JRA55"
 res   = "bn"
 lHour = [0,6,12,18]
@@ -114,4 +113,3 @@ for Year in lYear:
     #- write clist --
     for var in lvar:
       save_clist(var, da1[var], Year, Mon) 
-

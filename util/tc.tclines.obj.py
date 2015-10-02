@@ -3,6 +3,7 @@ from collections import deque
 import matplotlib.pyplot as plt
 from numpy import *
 from datetime import datetime
+import socket
 import calendar
 import sys, os
 import Cyclone
@@ -15,7 +16,9 @@ import detect_func
 #import tc_para
 #import tc_func
 #--------------------------------------
-lyear = range(2004,2004+1)
+iyear = 2014
+eyear = 2014
+lyear = range(iyear,eyear+1)
 lseason = [6]
 iday  = False
 eday  = False
@@ -34,11 +37,6 @@ ny      = cy.ny
 nx      = cy.nx
 
 Ccy     = ConstCyclone.Const(model=model,res=res)
-#thrvort = Ccy.thrvort
-#thpgrad = Ccy.thpgrad
-#thwcore = Ccy.thwcore
-#thdura  = Ccy.thdura
-#thinitsst = Ccy.thsst
 
 thrvort = Ccy.thrvort
 thpgrad = Ccy.thpgrad
@@ -57,15 +55,9 @@ miss_int= -9999
 # FUNCTION
 #*************************************
 def mk_dtcloc(year,mon):
-#  clistdir  = "/media/disk2/out/JRA55/bn/6hr/clist/%04d/%02d"%(year,mon)
   da1       = {}
   lstype  = ["dura","pgrad","nowpos","nextpos","time","iedist","rvort","dtlow","dtmid","dtup","initsst","initland"]
   for stype in lstype:
-#    siname        = clistdir  + "/%s.%04d.%02d.bn"%(stype,year,mon)
-#    if stype in ["dura","ipos","idate","nowpos","time"]:
-#      da1[stype]  = fromfile(siname,   int32)
-#    else:
-#      da1[stype]  = fromfile(siname, float32)
      da1[stype]  = cy.load_clist(stype, year, mon)
 
   #**** make dictionary ***
@@ -125,10 +117,10 @@ def mk_dtcloc(year,mon):
       continue 
 
 
-    #---- iedist -----
-    if iedist < dura*unitdist:
-      print "iedist",iedist,"<",dura*unitdist
-      continue
+#    #---- iedist -----
+#    if iedist < dura*unitdist:
+#      print "iedist",iedist,"<",dura*unitdist
+#      continue
 
     #---- time ------
     yeart,mont,dayt,hourt = detect_func.solve_time(time)
@@ -193,13 +185,6 @@ for season in lseason:
       
       
   ##*************\***********
-  ## for mapping
-  #nnx        = int( (urlon - lllon)/dlon)
-  #nny        = int( (urlat - lllat)/dlat)
-  #a1lon_loc  = linspace(lllon, urlon, nnx)
-  #a1lat_loc  = linspace(lllat, urlat, nny)
-  #LONS, LATS = meshgrid( a1lon_loc, a1lat_loc)
-  #------------------------
   # Basemap
   #------------------------
   lllat, lllon, urlat, urlon = util_para.ret_tcregionlatlon(region)
@@ -274,7 +259,12 @@ for season in lseason:
   
   #-- save --------------------
   print "save"
-  sodir   = "/media/disk2/out/cyclone/tc.obj"
+  hostname = socket.gethostname()
+  if   hostname == "well":
+    sodir   = "/media/disk2/out/cyclone/tc.obj"
+  elif hostname in ["mizu","naam"]:
+    sodir   = "/tank/utsumi/out/cyclone/tc.obj"
+  #----
   detect_func.mk_dir(sodir)
   soname  = sodir + "/tclines.%s.%s.%04d.%s.%02dh.wc%3.2f.sst%d.vor%.1e.png"%(model, region, year, season, thdura, thwcore, thinitsst -273.15, thrvort)
   

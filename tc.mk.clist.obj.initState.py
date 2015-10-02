@@ -3,16 +3,16 @@ import Cyclone
 from numpy import *
 from collections import deque
 
-iyear  = 2004
-eyear  = 2004
+iyear  = 2014
+eyear  = 2014
 lyear  = range(iyear,eyear+1)
-#lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
-lmon   = [2,3,4,5,6]
+lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
+#lmon   = [2,3,4,5,6]
 model  = "JRA55"
 res    = "bn"
 #--- year and month when the first data available --
-iyear_data = 2004
-imon_data  = 2
+iyear_data = 2014
+imon_data  = 1
 #-------------
 cyclone= Cyclone.Cyclone(model, res)
 #**********************************************
@@ -64,7 +64,7 @@ if (iyear == iyear_data)&(imon ==imon_data):
   dinitsst   = {} 
   dinitland  = {} 
 else:
-  dinitsst , a1temp = ret_a1initstate("sst" , year_pre, mon_pre, {} )
+  dinitsst , a1temp = ret_a1initState("sst" , year_pre, mon_pre, {} )
   dinitland, a1temp = ret_a1initstate("land", year_pre, mon_pre, {} )
 #-------------
 for year, mon in [[year,mon] for year in lyear for mon in lmon]:

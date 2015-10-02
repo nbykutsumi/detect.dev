@@ -16,10 +16,9 @@ plev  = 500
 dnx    = {}
 dny    = {}
 #****************************************************
-#lyear  = [2014]
-lyear  = [2004]
-imon   = 2
-emon   = 6
+lyear  = [2014]
+imon   = 1
+emon   = 12
 
 ra     = Reanalysis.Reanalysis(model=model, res=res)
 cy     = Cyclone.Cyclone(model=model, res=res)
@@ -93,7 +92,7 @@ for var in lvar:
       for day in range(1, ed + 1):
         stime  = "%04d%02d%02d%02d"%(year,mon,day, 0)
         #***********
-        oname  = odir + "/run.mean.%s.%04dhPa.%s.%s"%(var, plev, stime, res)
+        oname  = odir + "/run.mean.%s.%04dhPa.%s.%s"%(varname, plev, stime, res)
         #*********************
         # start running mean
         #*********************

@@ -1,0 +1,13 @@
+#-- for extratropical cyclones --
+python f2py.make.py detect_fsub.f90
+python ./c.findcyclone.py
+python ./c.runmean.wind.py
+python ./c.connectc.py
+python ./c.mk.clist.obj.py
+
+#-- for tropical cyclones --
+# after steps for ExCs
+python ./tc.mk.clist.obj.py
+python ./tc.mk.clist.obj.initState.py
+
+ 

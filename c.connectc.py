@@ -1,4 +1,3 @@
-#import ctrack
 from numpy import *
 from detect_fsub import *
 import Reanalysis
@@ -19,17 +18,24 @@ res     = "bn"
 tstp    = "6hr"
 hinc    = 6
 
-iyear       = 2004
-eyear       = 2004
+iyear       = 2014
+eyear       = 2014
 
 #iyear       = 2014
 #eyear       = 2014
-imon        = 2
-emon        = 4
+
+#-- date for last available data --
+eyear_dat   = 2014
+emon_dat    = 12
+eday_dat    = 31
+ehour_dat   = 18
+lasttime    = datetime.datetime(eyear_dat, emon_dat, eday_dat, ehour_dat)
+#------------------------
+imon        = 1
+emon        = 12
 #****************
 # last day
 #----------------
-lasttime = datetime.datetime(2014,7,20,18)
 #----------------
 miss_dbl     = -9999.0
 miss_int     = -9999
@@ -120,27 +126,7 @@ for model in lmodel:
   #-- const --- 
   const    = ConstCyclone.Const(model=model, res=res)
   thtopo   = const.thtopo
-  #****************************************************
-  # Input dir_root
-  #---------------
-#  winddir_root    = os.path.join(cy.baseDir,"run.mean")
-  
-  #------------
-#  pgraddir_root   = os.path.join(cy.baseDir,"pgrad")
-  #------------
-#  #---------------
-#  # Output dir_root
-#  #---------------
-#  odir_root      = "/media/disk2/out/JRA55/bn/%s"%(tstp)
-#  #---
-#  lastposdir_root  = odir_root
-#  pgmaxdir_root    = odir_root
-#  iposdir_root     = odir_root
-#  idatedir_root    = odir_root
-#  timedir_root     = odir_root
-#  lifedir_root     = odir_root
-#  nextposdir_root  = odir_root
-  
+ 
   #****************************************************
   # read lat, lon data
   #----------------------
@@ -206,18 +192,6 @@ for model in lmodel:
           #***************************************
           #* names for 0
           #---------------------------------------
-          #   DIRS & NAMES
-          #**********
-#          pgraddir0    = pgraddir_root   + "/%04d/%02d"%(year0, mon0)
-#          uadir0      = winddir_root    + "/ugrd/%04d/%02d"%(year0, mon0)
-#          vadir0      = winddir_root    + "/vgrd/%04d/%02d"%(year0, mon0)
-#          #
-#          lastposdir0 = lastposdir_root + "/lastpos/%04d/%02d"%(year0, mon0)
-#          pgmaxdir0   = pgmaxdir_root   + "/pgmax/%04d/%02d"%(year0, mon0)
-#          iposdir0    = iposdir_root    + "/ipos/%04d/%02d"%(year0, mon0)
-#          idatedir0   = idatedir_root   + "/idate/%04d/%02d"%(year0, mon0)
-#          timedir0    = timedir_root    + "/time/%04d/%02d"%(year0, mon0)
-
           pgradname0   = cy.path_a2dat("pgrad",  DTime0).srcPath
           lastposname0 = cy.path_a2dat("lastpos",DTime0).srcPath
           pgmaxname0   = cy.path_a2dat("pgmax",  DTime0).srcPath
@@ -225,46 +199,15 @@ for model in lmodel:
           idatename0   = cy.path_a2dat("idate",  DTime0).srcPath
           timename0    = cy.path_a2dat("time",   DTime0).srcPath
 
-#          pgradname0    = pgraddir0   + "/pgrad.%s.bn"%(stimeh0)
-#          uaname0     = uadir0    + "/run.mean.ugrd.0500hPa.%s.bn"%(stimed0)
-#          vaname0     = vadir0    + "/run.mean.vgrd.0500hPa.%s.bn"%(stimed0)
-
-
           uadir0       = os.path.join(cy.baseDir,"run.mean",var_ua,"%02d"%(year0),"%02d"%(mon0))
           vadir0       = os.path.join(cy.baseDir,"run.mean",var_va,"%02d"%(year0),"%02d"%(mon0))
 
           uaname0     =  os.path.join(uadir0, "run.mean.%s.0500hPa.%s.bn"%(var_ua, stimed0))
           vaname0     =  os.path.join(vadir0, "run.mean.%s.0500hPa.%s.bn"%(var_va, stimed0))
 
-          #
-#          lastposname0 = lastposdir0     + "/lastpos.%s.bn"%(stimeh0) 
-#          pgmaxname0   = pgmaxdir0       + "/pgmax.%s.bn"%(stimeh0) 
-#          iposname0    = iposdir0        + "/ipos.%s.bn"%(stimeh0)
-#          idatename0   = idatedir0       + "/idate.%s.bn"%(stimeh0)
-#          timename0    = timedir0        + "/time.%s.bn"%(stimeh0)
-          #
           #***************************************
           #* names for 1
           #---------------------------------------
-          #    DIRS
-          #***********
-#          pgraddir1   = pgraddir_root    + "/%04d/%02d"%(year1, mon1)
-          #psldir1     = psldir_root      + "/%04d/%02d"%(year, mon)
-          #pmeandir1   = pmeandir_root    + "/%04d/%02d"%(year, mon)
-          #
-#          lastposdir1 = lastposdir_root  + "/lastpos/%04d/%02d"%(year1, mon1)
-#          pgmaxdir1   = pgmaxdir_root    + "/pgmax/%04d/%02d"%(year1, mon1)
-#          iposdir1    = iposdir_root     + "/ipos/%04d/%02d"%(year1, mon1)
-#          idatedir1   = idatedir_root    + "/idate/%04d/%02d"%(year1, mon1)
-#          timedir1    = timedir_root     + "/time/%04d/%02d"%(year1, mon1)
-#          #------
-#          mk_dir(lastposdir1)
-#          mk_dir(pgmaxdir1)
-#          mk_dir(iposdir1)
-#          mk_dir(iposdir1)
-#          mk_dir(idatedir1)
-#          mk_dir(timedir1)
-
           lastposdir1 = cy.path_a2dat("lastpos",DTime1).srcDir
           pgmaxdir1   = cy.path_a2dat("pgmax",  DTime1).srcDir
           iposdir1    = cy.path_a2dat("ipos",   DTime1).srcDir
@@ -284,18 +227,6 @@ for model in lmodel:
           idatename1   = cy.path_a2dat("idate",  DTime1).srcPath
           timename1    = cy.path_a2dat("time",   DTime1).srcPath
 
-          #----------
-          #   names
-          #**********
-          #pslname1   = psldir1           + "/anl_p.PRMSL.%s.bn"%(stimeh1)
-          #pmeanname1 = pmeandir1         + "/pmean.%s.bn"%(stimeh1)
-          #
-#          lastposname1 = lastposdir1     + "/lastpos.%s.bn"%(stimeh1)
-#          pgmaxname1    = pgmaxdir1      + "/pgmax.%s.bn"%(stimeh1)
-#          iposname1    = iposdir1        + "/ipos.%s.bn"%(stimeh1)
-#          idatename1   = idatedir1       + "/idate.%s.bn"%(stimeh1)
-#          timename1    = timedir1        + "/time.%s.bn"%(stimeh1)
-#          pgradname1   = pgraddir1       + "/pgrad.%s.bn"%(stimeh1)
           #***************************************
           # read data
           #---------------------------------------
@@ -420,26 +351,8 @@ for model in lmodel:
           #***************************************
           #* names for 1
           #---------------------------------------
-          #    DIRS
-          #***********
-#          lastposdir1 = lastposdir_root  + "/lastpos/%04d/%02d"%(year1, mon1)
-#          pgmaxdir1   = pgmaxdir_root    + "/pgmax/%04d/%02d"%(year1, mon1)
-#          iposdir1    = iposdir_root     + "/ipos/%04d/%02d"%(year1, mon1)
-#          idatedir1   = idatedir_root    + "/idate/%04d/%02d"%(year1, mon1)
-#          timedir1    = timedir_root     + "/time/%04d/%02d"%(year1, mon1)
-          #----------
-          #   names
-          #**********
-#          lastposname1 = lastposdir1     + "/lastpos.%s.bn"%(stimeh1) 
-#          pgmaxname1   = pgmaxdir1       + "/pgmax.%s.bn"%(stimeh1)
-#          iposname1    = iposdir1        + "/ipos.%s.bn"%(stimeh1)
-#          idatename1   = idatedir1       + "/idate.%s.bn"%(stimeh1)
-#          timename1    = timedir1        + "/time.%s.bn"%(stimeh1)
-
           lastposname1 = cy.path_a2dat("lastpos",DTime1).srcPath
           pgmaxname1   = cy.path_a2dat("pgmax",  DTime1).srcPath
-#          iposname1    = cy.path_a2dat("ipos",   DTime1).srcPath
-#          idatename1   = cy.path_a2dat("idate",  DTime1).srcPath
           timename1    = cy.path_a2dat("time",   DTime1).srcPath
 
           #----------
@@ -464,18 +377,13 @@ for model in lmodel:
           for iy1 in range(0, ny):
             for ix1 in range(0, nx):
               if (a2time1[iy1, ix1] != miss_int):  # find cyclone
-                #pmin1    = a2pmin1[iy1, ix1]
                 pgmax1   = a2pgmax1[iy1, ix1]
                 time1    = a2time1[iy1, ix1]
                 lifenext = a2lifenext[iy1, ix1]
                 (ix0,iy0) = fortpos2pyxy(a2lastpos1[iy1,ix1], nx, miss_int)
                 #---- 
                 if (lifenext == miss_int):
-                  #life1 = 10000 * int(pgmax1) + time1
                   life1 = 1000000* time1 + int(pgmax1)
-                  #print "date=",stimeh1
-                  #print "time1=",time1
-                  #print "pmin1=",pmin1
                 else:
                   life1 = lifenext
                 #----
@@ -499,9 +407,6 @@ for model in lmodel:
           #--------------------------------------
           # out dir
           #**********
-#          lifedir1      = lifedir_root     + "/life/%04d/%02d"%(year1, mon1)
-#          nextposdir0   = nextposdir_root      + "/nextpos/%04d/%02d"%(year0, mon0)
-
           lifedir1     = cy.path_a2dat("life"   ,DTime1).srcDir
           nextposdir0  = cy.path_a2dat("nextpos",DTime0).srcDir
 
@@ -510,9 +415,6 @@ for model in lmodel:
           #----------
           # out name
           #**********
-#          lifename1     = lifedir1          + "/life.%s.bn"%(stimeh1)
-#          nextposname0  = nextposdir0       + "/nextpos.%s.bn"%(stimeh0)
-
           lifename1    = cy.path_a2dat("life"   ,DTime1).srcPath
           nextposname0 = cy.path_a2dat("nextpos",DTime0).srcPath
           
@@ -525,10 +427,9 @@ for model in lmodel:
           # "nextpos" for last time
           #**********
           if counter == 1:
-#            nextposdir1   = nextposdir_root + "/nextpos/%04d/%02d"%(year1, mon1)
-#            nextposname1  = nextposdir1     + "/nextpos.%s.bn"%(stimeh1)
             nextposdir1   = cy.path_a2dat("nextpos",DTime1).srcDir
             nextposname1  = cy.path_a2dat("nextpos",DTime1).srcPath
+            mk_dir(nextposdir1)
             a2nextpos1    = array(ones(ny*nx).reshape(ny,nx)*miss_int, int32)
             a2nextpos1.tofile(nextposname1)
           #----------
