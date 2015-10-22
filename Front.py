@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from front_fsub import *
 from detect_fsub import *
 import os
+import socket
 import ConstFront
 import Reanalysis
 #****************************************************
@@ -17,15 +18,25 @@ def read_txtlist(iname):
 
 class Front(object):
   def __init__(self, model="JRA55", res="bn", miss=-9999.):
+    #----------------
+    hostname = socket.gethostname()
+    if hostname == "well":
+      self.rootDir  = "/media/disk2"
+    if hostname in ["mizu","naam"]:
+      self.rootDir  = "/tank/utsumi"
+    #----------------
+
+
     C  = ConstFront.const(model=model, res=res)
     ra = Reanalysis.Reanalysis(model=model, res=res)
 
     self.res     = res
     if (model=="JRA25")&(res=="sa.one"):
-      self.baseDir = "/media/disk2/out/%s/%s.anl_p"%(model, res)
-      #self.baseDir = "/media/disk2/out/%s/%s.temp"%(model, res)  # test
+      #self.baseDir = "/media/disk2/out/%s/%s.anl_p"%(model, res)
+      self.baseDir = "%s/out/%s/%s.anl_p"%(self.rootDir, model, res)
     else:
-      self.baseDir = "/media/disk2/out/%s/%s"%(model, res)
+      #self.baseDir = "/media/disk2/out/%s/%s"%(model, res)
+      self.baseDir = "%s/out/%s/%s"%(self.rootDir, model, res)
 
     self.model   = model
     self.res     = res
