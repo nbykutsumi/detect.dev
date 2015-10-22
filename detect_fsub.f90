@@ -1061,7 +1061,7 @@ SUBROUTINE mk_territory_8grids(a2in, miss, nx, ny, a2territory)
 
 END SUBROUTINE mk_territory_8grids
 !*****************************************************************
-SUBROUTINE mk_territory(a2in, a1lon, a1lat, thdist, miss&
+SUBROUTINE mk_territory(a2in, a1lon, a1lat, thdist, imiss, omiss&
                 , nx, ny, a2territory )
   implicit none
   !-- input -------------------------------------
@@ -1075,8 +1075,8 @@ SUBROUTINE mk_territory(a2in, a1lon, a1lat, thdist, miss&
 
   real                                            thdist  ! [m]
 !f2py intent(in)                                  thdist
-  real                                            miss
-!f2py intent(in)                                  miss
+  real                                            imiss, omiss
+!f2py intent(in)                                  imiss, omiss
   !-- output ------------------------------------
   real,dimension(nx,ny)                       ::  a2territory
 !f2py intent(out)                                 a2territory
@@ -1088,14 +1088,14 @@ SUBROUTINE mk_territory(a2in, a1lon, a1lat, thdist, miss&
   integer,parameter                            :: miss_int = -9999
 
   !----------------------------------------------
-a2territory = miss
+a2territory = omiss
 
 do iy = 1, ny
   do ix = 1, nx
     !------------------------
     ! check
     !------------------------
-    if (a2in(ix,iy) .eq.miss) cycle
+    if (a2in(ix,iy) .eq.imiss) cycle
     !------------------------
     call circle_xy(iy, a1lon, a1lat, thdist, miss_int, nx, ny, a1x, a1y) 
     !-------------------------

@@ -16,7 +16,7 @@ def read_txtlist(iname):
 
 
 class Front(object):
-  def __init__(self, model="JRA55", res="bn"):
+  def __init__(self, model="JRA55", res="bn", miss=-9999.):
     C  = ConstFront.const(model=model, res=res)
     ra = Reanalysis.Reanalysis(model=model, res=res)
 
@@ -33,7 +33,7 @@ class Front(object):
     self.Lon     = read_txtlist( os.path.join(self.baseDir, "lon.txt"))
     self.ny      = len(self.Lat)
     self.nx      = len(self.Lon)
-    self.miss    = -9999.
+    self.miss    = miss
     self.thgrids = C.thgrids
     self.Mt1     = C.thfmask(model,res)[0]
     self.Mt2     = C.thfmask(model,res)[1]
@@ -133,9 +133,21 @@ class Front(object):
 
     return a2loc
 
-class Mask(Front):
-  def __init__(self,model="JRA55", res="bn"):
-    Front.__init__(self,model,res)
+  def mkMask_tfront(self, DTime, radkm=500, M1=False, M2=False, miss=False):
 
-  def mask_tfront(DTime, radkm=500, M1=False, M2=False):
+    if type(miss) == bool: miss = self.miss
+
+    return detect_fsub.mk_territory(\
+              self.load_tfront(DTime, M1=M1, M2=M2).T, self.Lon, self.Lat, radkm*1000., imiss=self.miss, omiss=miss\
+                                   ).T
+ 
+  def mkMask_qfront(self, DTime, radkm=500, M1=False, M2=False, Mt1=False, Mt2=False, miss=False):
+
+    if type(miss) == bool: miss = self.miss
+
+    return detect_fsub.mk_territory(\
+              self.load_qfront(DTime, M1=M1, M2=M2, Mt1=Mt1, Mt2=Mt2).T, self.Lon, self.Lat, radkm*1000., imiss=self.miss, omiss=miss\
+                                   ).T
+ 
     
+
