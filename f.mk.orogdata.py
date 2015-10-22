@@ -2,7 +2,7 @@ from numpy import *
 from detect_fsub import *
 import Reanalysis
 import Front
-import fig.Fig as Fig
+import Fig
 
 calcflag  = True
 #calcflag  = False
