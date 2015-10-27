@@ -4,6 +4,7 @@ import detect_func
 import calendar
 import Cyclone
 
+#-- test @ 27 Oct --
 iYear = 2010
 eYear = 2014
 lYear = range(iYear,eYear+1)
