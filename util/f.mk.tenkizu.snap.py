@@ -34,8 +34,8 @@ for Mon in lMon:
   figdir  = "/home/utsumi/temp/tenkizu/%04d%02d"%(Year,Mon)
   for i,Day in enumerate(lDay):
     Dtime = datetime(Year,Mon,Day,Hour)
-    a2tfront  = ma.masked_not_equal( front.load_tfront(Dtime), miss).filled(2.0)
-    a2qfront  = ma.masked_not_equal( front.load_qfront(Dtime), miss).filled(1.0)
+    a2tfront  = ma.masked_not_equal( front.mk_tfront(Dtime), miss).filled(2.0)
+    a2qfront  = ma.masked_not_equal( front.mk_qfront(Dtime), miss).filled(1.0)
     a2front   = ma.masked_where(a2tfront==2.0, a2qfront).filled(2.0)
 #    a2front   = a2tfront   # test, TEST
     a2front   = ma.masked_equal(a2front, miss)

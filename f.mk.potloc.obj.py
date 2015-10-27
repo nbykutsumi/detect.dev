@@ -4,30 +4,28 @@ from numpy import *
 import Reanalysis
 import Front
 import calendar
-import ctrack_para
-import ctrack_func
+import detect_func
 import sys, os
 import datetime
-import front_para
+import ConstFront
 #from dtanl_fsub import *
 from front_fsub import *
 #-----------------------
-#lyear  = range(1996,2012+1)
+#lyear  = range(2010,2014+1)
 #lyear  = range(1980,2012+1)
-#lyear  = [2014]
-lyear  = [2004]
-#lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
-lmon   = [6]
+lyear  = [2015]
+#lyear  = [2004]
+lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
 #iday   = 1
 iday   = 1  # test
 lhour  = [0,6,12,18]
-ltq    = ["q","t"]
+ltq    = ["t","q"]
 #ltq    = ["t"]
-#model  = "JRA55"
+model  = "JRA55"
+res    = "bn"
+#model  = "JRA25"
 #res    = "bn"
-model  = "JRA25"
-#res    = "bn"
-res    = "sa.one"
+#res    = "sa.one"
 
 ra     = Reanalysis.Reanalysis(model=model, res=res)
 if   model=="JRA55":
@@ -38,6 +36,7 @@ elif (model=="JRA25"):
 
 
 front  = Front.Front(model,res)
+ConstF = ConstFront.Const(model=model, res=res)
 #------------------------
 #local region ------
 plev     = 850   #(hPa)
@@ -46,8 +45,11 @@ cbarflag = "True"
 
 miss  = -9999.0
 
-thorog  = ctrack_para.ret_thorog()
-thgradorog=ctrack_para.ret_thgradorog()
+#thorog  = ctrack_para.ret_thorog()
+#thgradorog=ctrack_para.ret_thgradorog()
+thorog     = ConstF.thorog
+thgradorog = ConstF.thgradorog
+
 #************************
 # FUNCTIONS
 #************************
@@ -94,11 +96,8 @@ for year in lyear:
           ##******************************************************
           a2thermo  = ra.load_6hr(var, DTime, plev).Data
           a2loc1,a2loc2  = mk_front_loc_contour(a2thermo, a1lon, a1lat, miss)
-          Path        = front.path_potloc(DTime, tq)
-          sodir       = Path.srcDir
-          soname1     = Path.srcPath1
-          soname2     = Path.srcPath2
-          ctrack_func.mk_dir(sodir)
+          sodir, soname1, soname2   = front.path_potloc(DTime, tq)
+          detect_func.mk_dir(sodir)
           #------
           a2loc1.tofile(soname1)
           a2loc2.tofile(soname2)

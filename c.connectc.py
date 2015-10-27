@@ -18,7 +18,7 @@ res     = "bn"
 tstp    = "6hr"
 hinc    = 6
 
-iyear       = 2014
+iyear       = 2010
 eyear       = 2014
 
 #iyear       = 2014

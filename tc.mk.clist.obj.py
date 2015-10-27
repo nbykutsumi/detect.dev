@@ -7,7 +7,7 @@ import calendar
 import Reanalysis
 import Cyclone
 
-lYear = [2014]
+lYear = [2010,2012]
 lMon  = range(1,12+1)
 model = "JRA55"
 res   = "bn"
@@ -30,10 +30,10 @@ def ret_dvarname(model):
     return {"ua":"ugrd", "va":"vgrd", "ta":"tmp","sst":"BRTMP","land":"land"}
 
 def save_clist(var, a1dat, Year, Mon):
-  clistPath = cyclone.path_clist(var, Year, Mon).srcPath
-  clistDir  = cyclone.path_clist(var, Year, Mon).srcDir
+  clistDir, clistPath = cyclone.path_clist(var, Year, Mon)
   detect_func.mk_dir(clistDir)
-  dNumType  = cyclone.dNumType
+  dNumType            = cyclone.dNumType
+
   array(a1dat, dtype=dNumType[var]).tofile(clistPath)  
   print clistPath
 

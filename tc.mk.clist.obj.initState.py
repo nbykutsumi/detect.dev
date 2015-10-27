@@ -3,7 +3,7 @@ import Cyclone
 from numpy import *
 from collections import deque
 
-iyear  = 2014
+iyear  = 2010
 eyear  = 2014
 lyear  = range(iyear,eyear+1)
 lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
@@ -11,7 +11,7 @@ lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
 model  = "JRA55"
 res    = "bn"
 #--- year and month when the first data available --
-iyear_data = 2014
+iyear_data = 2010
 imon_data  = 1
 #-------------
 cyclone= Cyclone.Cyclone(model, res)

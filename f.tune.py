@@ -83,9 +83,9 @@ def mk_a2count(sDtime, eDtime, M1, M2, rad, thgrids, probability=True):
   while Dtime <= eDtime:
 
     if   tqtype == "t":
-      a2dat    = front.load_tfront(Dtime, M1=M1, M2=M2)
+      a2dat    = front.mk_tfront(Dtime, M1=M1, M2=M2)
     elif tqtype == "q":
-      a2dat    = front.load_qfront(Dtime, M1=M1, M2=M2)
+      a2dat    = front.mk_qfront(Dtime, M1=M1, M2=M2)
 
     a2terr   = detect_fsub.mk_territory(a2dat.T, a1lon, a1lat, rad, miss).T
     a2counts = a2counts + ma.masked_where(a2terr ==miss, a2one).filled(0.0)

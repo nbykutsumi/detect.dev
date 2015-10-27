@@ -26,8 +26,7 @@ class Front(object):
       self.rootDir  = "/tank/utsumi"
     #----------------
 
-
-    C  = ConstFront.const(model=model, res=res)
+    C  = ConstFront.Const(model=model, res=res)
     ra = Reanalysis.Reanalysis(model=model, res=res)
 
     self.res     = res
@@ -69,22 +68,43 @@ class Front(object):
 
 
   def path_potloc(self, DTime, tq="t"):
+    """
+    returns: srcDir, srcPath1(M1), srcPath2(M2)
+    """
     Year,Mon,Day,Hour = DTime.year, DTime.month, DTime.day, DTime.hour
-    self.srcDir    = os.path.join( self.baseDir,"6hr", "front.%s"%(tq),"%04d"%Year,"%02d"%Mon)
+    srcDir    = os.path.join( self.baseDir,"6hr", "front.%s"%(tq),"%04d"%Year,"%02d"%Mon)
 
     #-- test ---
     if (self.model=="JRA25")&(self.res=="sa.one"):
-      self.srcDir    = os.path.join( self.baseDir,"6hr", "front.%s"%(tq),"%04d%02d"%(Year,Mon))
+      srcDir    = os.path.join( self.baseDir,"6hr", "front.%s"%(tq),"%04d%02d"%(Year,Mon))
 
     #-----------
 
-    self.srcPath1  = os.path.join( self.srcDir, "front.%s.M1.%04d.%02d.%02d.%02d.%s"%(tq,Year,Mon,Day,Hour,self.res))
-    self.srcPath2  = os.path.join( self.srcDir, "front.%s.M2.%04d.%02d.%02d.%02d.%s"%(tq,Year,Mon,Day,Hour,self.res))
+    srcPath1  = os.path.join( srcDir, "front.%s.M1.%04d.%02d.%02d.%02d.%s"%(tq,Year,Mon,Day,Hour,self.res))
+    srcPath2  = os.path.join( srcDir, "front.%s.M2.%04d.%02d.%02d.%02d.%s"%(tq,Year,Mon,Day,Hour,self.res))
 
-    return self
+    return srcDir, srcPath1, srcPath2
+
+  def path_finloc(self, DTime, tq="t"):
+    Year,Mon,Day,Hour = DTime.year, DTime.month, DTime.day, DTime.hour
+    srcDir    = os.path.join( self.baseDir,"6hr", "front.%s.fin"%(tq),"%04d"%Year,"%02d"%Mon)
+
+    #-----------
+    srcPath   = os.path.join( srcDir, "front.%s.%04d.%02d.%02d.%02d.%s"%(tq,Year,Mon,Day,Hour,self.res))
+
+    return srcDir, srcPath
+
+  def path_mask(self, DTime, tq="t", radkm=1000.):
+    Year,Mon,Day,Hour = DTime.year, DTime.month, DTime.day, DTime.hour
+    srcDir    = os.path.join( self.baseDir,"6hr", "mask.front.%s"%(tq),"%04d"%Year,"%02d"%Mon)
+
+    #-----------
+    srcPath   = os.path.join( srcDir, "%s.%04dkm.%04d.%02d.%02d.%02d.%s"%(tq,radkm,Year,Mon,Day,Hour,self.res))
+
+    return srcDir, srcPath
 
 
-  def load_tfront(self, DTime, M1=False, M2=False):
+  def mk_tfront(self, DTime, M1=False, M2=False):
     if type(M1)==bool:
       M1,M2 = self.Mt1, self.Mt2
 
@@ -92,10 +112,7 @@ class Front(object):
     miss      = self.miss
     trace_coef= self.trace_coef
 
-    Path      = self.path_potloc(DTime, "t")
-    srcDir    = Path.srcDir
-    srcPath1  = Path.srcPath1
-    srcPath2  = Path.srcPath2
+    srcDir, srcPath1, srcPath2  = self.path_potloc(DTime, "t")
 
     a2potloc1 = fromfile(srcPath1, float32).reshape(ny,nx)
     a2potloc2 = fromfile(srcPath2, float32).reshape(ny,nx)
@@ -111,7 +128,7 @@ class Front(object):
     a2loc     = front_fsub.del_front_lesseq_ngrids_wgt(a2loc.T, self.Lat,  miss, self.thgrids).T
     return a2loc
 
-  def load_qfront(self, DTime, M1=False, M2=False, Mt1=False, Mt2=False):
+  def mk_qfront(self, DTime, M1=False, M2=False, Mt1=False, Mt2=False):
     if type(M1)==bool:
       M1,M2 = self.Mq1, self.Mq2
 
@@ -119,10 +136,7 @@ class Front(object):
     miss      = self.miss
     trace_coef= self.trace_coef
 
-    Path      = self.path_potloc(DTime, "q")
-    srcDir    = Path.srcDir
-    srcPath1  = Path.srcPath1
-    srcPath2  = Path.srcPath2
+    srcDir, srcPath1, srcPath2  = self.path_potloc(DTime, "q")
 
     a2potloc1 = fromfile(srcPath1, float32).reshape(ny,nx)
     a2potloc2 = fromfile(srcPath2, float32).reshape(ny,nx)
@@ -130,7 +144,7 @@ class Front(object):
     a2loc     = ma.masked_less(a2potloc1, M1)
     a2loc     = ma.masked_where(a2potloc2 < M2, a2loc).filled(miss)
 
-    a2loc_t   = self.load_tfront(DTime, Mt1, Mt2)
+    a2loc_t   = self.mk_tfront(DTime, Mt1, Mt2)
     a2loc_t   = detect_fsub.mk_territory_ngrids( a2loc_t.T, 2, miss).T
     a2loc     = ma.masked_where( a2loc_t !=miss, a2loc).filled(miss)
 
@@ -149,7 +163,7 @@ class Front(object):
     if type(miss) == bool: miss = self.miss
 
     return detect_fsub.mk_territory(\
-              self.load_tfront(DTime, M1=M1, M2=M2).T, self.Lon, self.Lat, radkm*1000., imiss=self.miss, omiss=miss\
+              self.mk_tfront(DTime, M1=M1, M2=M2).T, self.Lon, self.Lat, radkm*1000., imiss=self.miss, omiss=miss\
                                    ).T
  
   def mkMask_qfront(self, DTime, radkm=500, M1=False, M2=False, Mt1=False, Mt2=False, miss=False):
@@ -157,7 +171,7 @@ class Front(object):
     if type(miss) == bool: miss = self.miss
 
     return detect_fsub.mk_territory(\
-              self.load_qfront(DTime, M1=M1, M2=M2, Mt1=Mt1, Mt2=Mt2).T, self.Lon, self.Lat, radkm*1000., imiss=self.miss, omiss=miss\
+              self.mk_qfront(DTime, M1=M1, M2=M2, Mt1=Mt1, Mt2=Mt2).T, self.Lon, self.Lat, radkm*1000., imiss=self.miss, omiss=miss\
                                    ).T
  
     

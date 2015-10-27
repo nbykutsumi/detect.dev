@@ -2,7 +2,7 @@ import sys
 
 myname = "ConstFront.py"
 
-class const(object):
+class Const(object):
   def __init__(self, model="JRA55", res="bn"):
     if (model,res) == ("JRA55","bn"):
       self.thM1t = 0.30  # K/100km/100km

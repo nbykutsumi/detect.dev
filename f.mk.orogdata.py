@@ -6,8 +6,8 @@ import Fig
 
 calcflag  = True
 #calcflag  = False
-model = "JRA25"
-#model = "JRA55"
+#model = "JRA25"
+model = "JRA55"
 res   = "bn"
 radkm = 300.  # (km)
 

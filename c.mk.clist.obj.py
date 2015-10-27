@@ -15,7 +15,7 @@ singleday = False
 
 #iyear  = 2004
 #eyear  = 2004
-iyear  = 2014
+iyear  = 2010
 eyear  = 2014
 lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
 #lmon   = [2,3,4,5,6,7,8,9]
@@ -172,7 +172,7 @@ for model in lmodel:
       da1["iedist"] = ret_a1iedist(da1["ipos"], da1["lastpos"])
 
       #----- make dir ----
-      sodir  = cy.path_clist("ipos", year, mon).srcDir
+      sodir  = cy.path_clist("ipos", year, mon)[0]
       detect_func.mk_dir(sodir)
 
       #---- save --
@@ -180,7 +180,7 @@ for model in lmodel:
       #_lstype = lstype_ex
       
       for stype in _lstype:
-        soname = cy.path_clist(stype, year, mon).srcPath
+        soname = cy.path_clist(stype, year, mon)[1]
         
         if stype in ["dura","ipos","idate","nowpos","time","lastpos","nextpos"]:
           a1out = array( da1[stype] ,int32   )

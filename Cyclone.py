@@ -2,11 +2,12 @@ from numpy import *
 from detect_fsub import *
 from datetime import datetime, timedelta
 from collections import deque
+from ConstCyclone import Const
 import os
 import itertools
 import socket
 import BestTrackTC
-from ConstCyclone import Const
+import calendar
 #****************************************************
 def read_txtlist(iname):
   f = open(iname, "r")
@@ -110,23 +111,23 @@ class Cyclone(Const):
 
   def path_clist(self, var, Year, Mon):
     self.tstep   = "6hr"
-    self.srcDir  = os.path.join(self.baseDir, self.tstep, "clist", "%04d"%(Year), "%02d"%(Mon))
-    self.srcPath = os.path.join(self.srcDir, "%s.%04d.%02d.bn"%(var,Year,Mon))
-    return self
+    srcDir  = os.path.join(self.baseDir, self.tstep, "clist", "%04d"%(Year), "%02d"%(Mon))
+    srcPath = os.path.join(srcDir, "%s.%04d.%02d.bn"%(var,Year,Mon))
+    return srcDir, srcPath
 
   def load_clist(self, var, Year, Mon):
-    srcPath = self.path_clist(var, Year, Mon)
-    return fromfile(self.srcPath, self.dNumType[var])
+    srcPath = self.path_clist(var, Year, Mon)[1]
+    return fromfile(srcPath, self.dNumType[var])
 
   def dictC(self, Year, Mon, varname="pgrad", tctype="obj"):
    if tctype == "obj":
-     return self.dictC_objTC(Year, Mon, varname=varname, tctype=tctype)
+     return self.dictC_objTC(Year, Mon, varname=varname)
    if tctype == "bst":
-     return self.dictC_bstTC(Year, Mon, varname=varname, tctype=tctype)
+     return self.dictC_bstTC(Year, Mon, varname=varname)
 
 
 
-  def dictC_bstTC(self, Year, Mon, varname="pgrad", tctype="obj"):
+  def dictC_bstTC(self, Year, Mon, varname="pgrad"):
     thpgrad   = self.thpgrad
     thdura    = self.thdura
 
@@ -189,7 +190,7 @@ class Cyclone(Const):
     return self
 
 
-  def dictC_objTC(self, Year, Mon, varname="pgrad", tctype="obj"):
+  def dictC_objTC(self, Year, Mon, varname="pgrad"):
     thrvort   = self.thrvort
     thpgrad   = self.thpgrad
     thwcore   = self.thwcore
@@ -288,6 +289,18 @@ class Cyclone(Const):
       except KeyError:
         dictTC[DTime] = [oList]
 
+    #---- fill blank dates ----
+    iDay = 1
+    eDay = calendar.monthrange(Year,Mon)[1]
+    lDay = range(iDay,eDay+1)
+    lHour= [0,6,12,18]
+    for Day, Hour in [[Day,Hour] for Day in lDay for Hour in lHour]:
+      DTime = datetime(Year,Mon,Day,Hour)
+      if not dictExC.has_key(DTime):
+        dictExC[DTime] = []
+      if not dictTC.has_key(DTime):
+        dictTC[DTime]  = []
+
     #--------------------------------------------
     self.dictTC  = dictTC
     self.dictExC = dictExC
@@ -295,38 +308,84 @@ class Cyclone(Const):
 
 
 class Cyclone_2D(Cyclone):
-  def __init__(self, Year, Mon, model="JRA55", tctype="obj",miss=-9999.):
+  def __init__(self, Year, Mon, model="JRA55", res="bn", tctype="obj",miss=-9999.):
 
 
-    Cyclone.__init__(self)
+    Cyclone.__init__(self, model=model, res=res)
     self.instDict  = self.dictC(Year, Mon, varname="pgrad",tctype=tctype)
     self.a2miss    = ones([self.ny, self.nx], float32)*miss
     self.miss      = miss
     self.tctype    = tctype
+    self.res       = res
 
 
-
-  def load_a2tc(self, DTime):
-    aList     = zip(*array(self.instDict.dictTC[DTime]))
-    a2dat     = self.a2miss.copy()
-    a2dat[ aList[1], aList[0]] = aList[-1]
+  def mk_a2tc(self, DTime):
+    if len(self.instDict.dictTC[DTime]) >0:
+      aList     = zip(*array(self.instDict.dictTC[DTime]))
+      a2dat     = self.a2miss.copy()
+      a2dat[ aList[1], aList[0]] = aList[-1]
+    else:
+      a2dat     = self.a2miss.copy()
     return a2dat
 
-  def load_a2exc(self, DTime):
-    aList     = zip(*array(self.instDict.dictExC[DTime]))
-    a2dat     = self.a2miss.copy()
-    a2dat[ aList[1], aList[0]] = aList[-1]
+  def mk_a2exc(self, DTime):
+    if len(self.instDict.dictExC[DTime]) >0:
+      aList     = zip(*array(self.instDict.dictExC[DTime]))
+      a2dat     = self.a2miss.copy()
+      a2dat[ aList[1], aList[0]] = aList[-1]
+    else:
+      a2dat     = a2miss.copy()
     return a2dat
 
   def mkMask_exc(self, DTime, radkm=1000, miss=False):
     if type(miss) == bool: miss=self.miss
 
-    a2loc     = self.load_a2exc(DTime)
+    a2loc     = self.mk_a2exc(DTime)
     return detect_fsub.mk_territory(a2loc.T, self.Lon, self.Lat, radkm*1000., imiss=self.miss, omiss=miss).T
 
   def mkMask_tc(self, DTime, radkm=1000, miss=False):
     if type(miss) == bool: miss=self.miss
-    a2loc     = self.load_a2tc(DTime)
+    a2loc     = self.mk_a2tc(DTime)
     return detect_fsub.mk_territory(a2loc.T, self.Lon, self.Lat, radkm*1000., imiss=self.miss, omiss=miss).T
+
+  def path_exc(self, DTime):
+    Year    = DTime.year
+    Mon     = DTime.month
+    Day     = DTime.day
+    Hour    = DTime.hour
+    srcDir  = os.path.join(self.baseDir, self.tstep, "exc.%stc"%(self.tctype), "%04d"%(Year), "%02d"%(Mon))
+    srcPath = os.path.join(srcDir, "%s.%04d%02d%02d%02d.%s"%("exc",Year,Mon,Day,Hour,self.res))
+
+    return srcDir, srcPath
+
+  def path_tc(self, DTime):
+    Year    = DTime.year
+    Mon     = DTime.month
+    Day     = DTime.day
+    Hour    = DTime.hour
+
+    srcDir  = os.path.join(self.baseDir, self.tstep, "tc.%s"%(self.tctype), "%04d"%(Year), "%02d"%(Mon))
+    srcPath = os.path.join(srcDir, "%s.%04d%02d%02d%02d.%s"%("tc",Year,Mon,Day,Hour,self.res))
+    return srcDir, srcPath
+
+  def path_Mask_exc(self, DTime, radkm=1000):
+    Year    = DTime.year
+    Mon     = DTime.month
+    Day     = DTime.day
+    Hour    = DTime.hour
+
+    srcDir  = os.path.join(self.baseDir, self.tstep, "mask.exc.%stc"%(self.tctype), "%04d"%(Year), "%02d"%(Mon))
+    srcPath = os.path.join(srcDir, "%s.%04dkm.%04d%02d%02d%02d.%s"%("exc",radkm,Year,Mon,Day,Hour,self.res))
+    return srcDir, srcPath
+
+  def path_Mask_tc(self, DTime, radkm=1000):
+    Year    = DTime.year
+    Mon     = DTime.month
+    Day     = DTime.day
+    Hour    = DTime.hour
+
+    srcDir  = os.path.join(self.baseDir, self.tstep, "mask.tc.%s"%(self.tctype), "%04d"%(Year), "%02d"%(Mon))
+    srcPath = os.path.join(srcDir, "%s.%04dkm.%04d%02d%02d%02d.%s"%("tc",radkm,Year,Mon,Day,Hour,self.res))
+    return srcDir, srcPath
 
 
