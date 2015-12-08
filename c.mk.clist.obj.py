@@ -15,8 +15,8 @@ singleday = False
 
 #iyear  = 2004
 #eyear  = 2004
-iyear  = 2010
-eyear  = 2014
+iyear  = 1990
+eyear  = 2009
 lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
 #lmon   = [2,3,4,5,6,7,8,9]
 iday   = 1

@@ -8,10 +8,10 @@ import os, sys, shutil
 #--------------------------------------------------
 tstp        = "6hr"
 hinc        = 6
-#iyear       = 2004
-#eyear       = 2004
-iyear       = 2015
-eyear       = 2015
+iyear       = 1990
+eyear       = 2009
+#iyear       = 2015
+#eyear       = 2015
 imon        = 1
 emon        = 12
 #imon        = 2

@@ -15,7 +15,7 @@ class Tag(ConstMask.Const):
     self.miss  = miss
     self.Front = Front.Front(model, res, miss)
 
-  def init_cyclone(self, Year, Mon, tctype="obj"):
+  def init_cyclone(self, Year, Mon, tctype="bst"):
     """
     tctype: "obj", "bst"
     """
@@ -36,47 +36,82 @@ class Tag(ConstMask.Const):
       if type(radkm)==bool: radkm = self.dictRadkm[tag]
       return self.Front.mkMask_tfront(DTime=DTime, radkm=radkm, miss=miss)
 
-    if tag in ["nbc","front.q"]:
+    elif tag in ["nbc","front.q"]:
       if type(radkm)==bool: radkm = self.dictRadkm[tag]
       return self.Front.mkMask_qfront(DTime=DTime, radkm=radkm, miss=miss)
 
-    if tag == "tc":
+    elif tag == "tc":
       if type(radkm)==bool: radkm = self.dictRadkm[tag]
       return self.Cyclone.mkMask_tc(DTime=DTime, radkm=radkm, miss=miss)
 
-    if tag == "c":
+    elif tag == "c":
       if type(radkm)==bool: radkm = self.dictRadkm[tag]
       return self.Cyclone.mkMask_exc(DTime=DTime, radkm=radkm, miss=miss)
 
-    if tag == "cf":
+    elif tag == "cf":
       if type(radkm) != bool:
         print "Tag.py: radkm cannot be specified for combinations";sys.exit()
       a2c = self.Cyclone.mkMask_exc(DTime=DTime, radkm=self.dictRadkm["c"], miss=miss)
       a2f = self.Front.mkMask_tfront(DTime=DTime, radkm=self.dictRadkm["fbc"], miss=miss)
       return ma.masked_where(a2c != miss, a2f).filled(1.0)
 
-  def mkMask_wgt(self, ltag, DTime, miss=0.0):
+    else:
+      print "check! tag=",tag
+      sys.exit()
+
+#  def mkMask_wgt(self, ltag, DTime, miss=0.0):
+#    """
+#    ltag = ["tag1", "tag2", ...], without "ot"
+#    """
+#    dictMask = {}
+#
+#    for tag in ltag:
+#      dictMask[tag] = self.mkMask(tag, DTime, miss=0.0)
+#     
+#    a2sum    = array([dictMask[tag] for tag in ltag]).sum(axis=0)
+#    a2denomi = ma.masked_equal(a2sum, 0.0).filled(1.0)
+#
+#    for tag in ltag:
+#      dictMask[tag] = dictMask[tag] / a2denomi
+#
+#    #- ot --
+#    dictMask["ot"] = ma.masked_where(a2sum >0.0, ones(a2sum.shape, float32)).filled(miss)
+#
+#    #-- miss --
+#    if miss != 0.0:
+#      for tag in ltag: 
+#        dictMask[tag] = ma.masked_equal(dictMask[tag], 0.0).filled(miss)
+#    #----------
+#    return dictMask
+
+  def mkMaskFrac(self, ltag, DTime, miss=0.0):
     """
     ltag = ["tag1", "tag2", ...], without "ot"
     """
     dictMask = {}
-
     for tag in ltag:
       dictMask[tag] = self.mkMask(tag, DTime, miss=0.0)
      
+    return self.mkMaskFracCore(dictMask, miss)
+
+
+  def mkMaskFracCore(self, dictMask=False, miss=0.0):
+    ltag     = dictMask.keys()
     a2sum    = array([dictMask[tag] for tag in ltag]).sum(axis=0)
     a2denomi = ma.masked_equal(a2sum, 0.0).filled(1.0)
 
+    dictMaskFrac = {}
     for tag in ltag:
-      dictMask[tag] = dictMask[tag] / a2denomi
+      dictMaskFrac[tag] = dictMask[tag] / a2denomi
 
     #- ot --
-    dictMask["ot"] = ma.masked_where(a2sum >0.0, ones(a2sum.shape, float32)).filled(miss)
+    dictMaskFrac["ot"] = ma.masked_where(a2sum >0.0, ones(a2sum.shape, float32)).filled(miss)
 
     #-- miss --
     if miss != 0.0:
       for tag in ltag: 
-        dictMask[tag] = ma.masked_equal(dictMask[tag], 0.0).filled(miss)
+        dictMaskFrac[tag] = ma.masked_equal(dictMaskFrac[tag], 0.0).filled(miss)
     #----------
-    return dictMask
+    return dictMaskFrac
+
  
