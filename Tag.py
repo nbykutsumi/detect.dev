@@ -15,12 +15,21 @@ class Tag(ConstMask.Const):
     self.miss  = miss
     self.Front = Front.Front(model, res, miss)
 
-  def init_cyclone(self, Year, Mon, tctype="bst"):
+  #def init_cyclone(self, Year, Mon, tctype="bst"):
+  #  """
+  #  tctype: "obj", "bst"
+  #  """
+  #  self.Cyclone = Cyclone.Cyclone_2D(Year, Mon, tctype=tctype, miss=self.miss)
+  #  return self
+
+  def init_cyclone(self, iYM, eYM, model="JRA55", tctype="bst"):
     """
     tctype: "obj", "bst"
     """
-    self.Cyclone = Cyclone.Cyclone_2D(Year, Mon, tctype=tctype, miss=self.miss)
+    self.Cyclone = Cyclone.Cyclone_2D(iYM, eYM, model=model, tctype=tctype, miss=self.miss)
     return self
+
+
 
   def mkMask(self, tag, DTime, radkm=False, miss=False):
     """

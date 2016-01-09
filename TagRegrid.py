@@ -2,7 +2,7 @@ from numpy import *
 from datetime import datetime
 from Tag import Tag
 from regrid import Regrid
-from cf import biIntp
+#from cf import biIntp
 
 class TagRegrid(Tag):
   def __init__(self, model="JRA55", LatOut=False, LonOut=False, miss=-9999.):
@@ -18,12 +18,12 @@ class TagRegrid(Tag):
     """
     dictMask = {}
     for tag in ltag:
-      aMaskFrac     = biIntp(\
-      #aMaskFrac     = Regrid.biIntp(\
+      #aMaskFrac     = biIntp(\
+      aMaskFrac     = Regrid.biIntp(\
                       self.LatIn, self.LonIn   \
                     , self.mkMask(tag, DTime, miss=0.0) \
                     , self.LatOut, self.LonOut \
-                    )
+                    )[0]
 
       dictMask[tag] = ma.masked_greater_equal(\
                         ma.masked_less(aMaskFrac, 0.5).filled(0.0) \

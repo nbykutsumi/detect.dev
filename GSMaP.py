@@ -1,1 +1,1 @@
-/home/utsumi/bin/myfunc/io/GSMaP.py
+/home/utsumi/bin/myfunc/IO/GSMaP.py
