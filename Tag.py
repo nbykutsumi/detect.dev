@@ -14,7 +14,8 @@ class Tag(ConstMask.Const):
     self.res   = res
     self.miss  = miss
     self.Front = Front.Front(model, res, miss)
-
+    self.Lat   = self.Front.Lat
+    self.Lon   = self.Front.Lon
   #def init_cyclone(self, Year, Mon, tctype="bst"):
   #  """
   #  tctype: "obj", "bst"

@@ -13,8 +13,8 @@ from front_fsub import *
 #-----------------------
 #lyear  = range(2010,2014+1)
 #lyear  = range(1980,2012+1)
-lyear  = range(1990,2009)
-#lyear  = [2004]
+#lyear  = range(1990,2009)
+lyear  = [2009]
 lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
 #iday   = 1
 iday   = 1  # test

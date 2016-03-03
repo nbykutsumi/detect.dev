@@ -435,6 +435,219 @@ RETURN
 END SUBROUTINE findcyclone_bn
 
 !!*****************************************************************
+!!*****************************************************************
+SUBROUTINE connectc_bn_nopgmax(&
+        &  a2pgrad0, a2pgrad1, a2ua0, a2va0&
+        &, a2ipos0, a2idate0, a2age0&
+        &, a1lon, a1lat, thdp, thdist, hinc, miss_dbl, miss_int&
+        &, year1, mon1, day1, hour1&
+        &, a2prepos1, a2ipos1, a2idate1, a2age1&
+        &, nx, ny)
+  implicit none
+  !**************************************
+  ! a2prepos returns nx*(iy -1) + ix
+  ! where ix = 1,2, .. nx,   iy = 1, 2, .. ny
+  ! NOT ix = 0, 1, .. nx-1,  iy = 0, 1, .. ny
+
+  !**************************************
+  !** for input
+  !**************************************
+  integer                                          nx, ny
+  double precision,dimension(nx, ny)            :: a2pgrad0, a2pgrad1, a2ua0, a2va0
+!f2py intent(in)                                   a2pgrad0, a2pgrad1, a2ua0, a2va0
+  integer,dimension(nx,ny)                      :: a2ipos0, a2idate0, a2age0
+!f2py intent(in)                                   a2ipos0, a2idate0, a2age0
+  double precision,dimension(ny)                :: a1lat
+!f2py intent(in)                                   a1lat
+  double precision,dimension(nx)                :: a1lon
+!f2py intent(in)                                   a1lon
+  double precision                                 thdp, thdist
+!f2py intent(in)                                   thdp, thdist
+  integer                                          hinc
+!f2py intent(in)                                   hinc
+  double precision                                 miss_dbl
+!f2py intent(in)                                   miss_dbl
+  integer                                          miss_int
+!f2py intent(in)                                   miss_int
+  integer                                          year1, mon1, day1, hour1
+!f2py intent(in)                                   year1, mon1, day1, hour1
+  !**************************************
+  !** for output
+  !**************************************
+  integer,dimension(nx, ny)                     :: a2prepos1, a2ipos1, a2idate1, a2age1
+!f2py intent(out)                                  a2prepos1, a2ipos1, a2idate1, a2age1
+  !**************************************
+  !** for calc
+  !**************************************
+  integer                                          ix0, iy0, ix1, iy1, iix1, iiy1, iix, iiy, iix_loop, iiy_loop
+  integer                                          ngrids, sgrids, xgrids, ygrids
+  double precision                                 lat0, lon0, lat1, lon1
+  double precision                                 ua0, va0, dp0
+  double precision                                 dp1
+  double precision                                 londist, latdist
+  double precision                                 dlon
+  double precision                                 iilon, iilat
+  double precision                                 iidist, iidp
+  double precision                                 iidist_temp, iidp_temp
+  integer                                          xx, yy
+  !integer,dimension(nx*ny)                      :: a1x, a1y
+  !integer,dimension(8)                           :: a1surrx, a1suury
+  integer                                          cflag
+  !**************************************
+  !** parameter
+  !**************************************
+  double precision,parameter                    :: speedfactor=0.5d0
+!------------------------------------------------------------
+!dlat  = a1lat(2) - a1lat(1)
+dlon  = a1lon(2) - a1lon(1)
+!************************************************
+! initialize
+!------------------------------------------------
+a2prepos1 = miss_int
+a2ipos1    = miss_int
+a2idate1   = miss_int
+a2age1    = miss_int
+!************************************************
+! search cyclone same as previous timestep
+!------------------------------------------------
+do iy0 = 1, ny
+  do ix0 = 1, nx
+    if (a2pgrad0(ix0,iy0) .ne. miss_dbl) then
+      dp0 = a2pgrad0(ix0,iy0)
+      if ( dp0 .gt. thdp ) then
+        !-----------------
+        lat0    = a1lat(iy0)
+        lon0    = a1lon(ix0)
+        ua0     = a2ua0(ix0, iy0)
+        va0     = a2va0(ix0, iy0)
+        !-----------------
+        if (ua0.eq.miss_dbl)then
+          ua0 = 0.0d0
+        end if
+        if (va0.eq.miss_dbl)then
+          va0 = 0.0d0
+        end if
+        !-----------------
+        !pmean0  = a2pmean0(ix0, iy0)
+        !psl0    = a2psl0(ix0, iy0)
+        !****************************************
+        ! Advection
+        !-----------------
+        londist = ua0 * 60d0 * 60d0 * hinc * speedfactor ! [m]
+        latdist = va0 * 60d0 * 60d0 * hinc * speedfactor ! [m]
+!        ix1     = ix0 + longrids(lat0, dlon, londist)
+!        iy1     = iy0 + latgrids(lat0, dlat, latdist)
+        ix1     = ix0 + longrids_bn(lat0, dlon, londist)
+        iy1     = iy0 + latgrids_bn(iy0,  a1lat, latdist, ny)
+
+        call ixy2iixy(nx, ny, ix1, iy1, iix1, iiy1)
+        ix1     = iix1
+        iy1     = iiy1
+        !****************************************
+        ! search
+        !----------------------------------------
+        ! set range
+        !***********
+        lat1    = a1lat(iy1)
+        lon1    = a1lon(ix1)
+
+        !call gridrange(lat1, dlat, dlon, thdist, ngrids, sgrids, xgrids)
+
+        ngrids  = latgrids_bn(iy1,  a1lat,  thdist, ny)
+        sgrids  = latgrids_bn(iy1,  a1lat, -thdist, ny)
+        xgrids  = longrids_bn(lat1, dlon, thdist)
+
+        if (sgrids .ge. ngrids )then
+          ygrids = sgrids
+        else
+          ygrids = ngrids
+        end if
+        !--
+        !-----------
+        ! search loop
+        !***********
+        iidist = 1.0e+20
+        iidp   = -1.0e+20
+        xx     = 0
+        yy     = 0
+        cflag  = 0
+        do iix_loop = ix1 - xgrids, ix1 + xgrids
+          do iiy_loop = iy1 - ygrids, iy1 + ygrids
+            call ixy2iixy(nx, ny, iix_loop, iiy_loop, iix, iiy)
+            !**********************
+            ! DO NOT USE
+            ! TC track will be drastically reduced
+            !!------------------
+            !! skip if the potential cyclone is
+            !! located in the same place as the previous step
+            !!------------------
+            !if ((iix.eq.ix0).and.(iiy.eq.iy0))then
+            !  cycle
+            !end if
+            !!------------------
+            if (a2pgrad1(iix,iiy) .ne. miss_dbl) then
+              !iipsl        = a2psl1(iix, iiy)
+              iidp_temp    = a2pgrad1(iix,iiy)
+              iilat        = a1lat(iiy)
+              iilon        = a1lon(iix)
+              if (iidp_temp .gt. thdp) then
+                iidist_temp  = hubeny(lat1, lon1, iilat, iilon)
+                if (iidist_temp .lt. iidist) then
+                  cflag        = 1
+                 iidist       = iidist_temp
+                  iidp         = iidp_temp
+                  iilon        = a1lon(iix)
+                  iilat        = a1lat(iiy)
+                  xx           = iix
+                  yy           = iiy
+                else if (iidist_temp .eq. iidist) then
+                  if (iidp_temp .gt. iidp) then
+                    cflag        = 1
+                    iidist       = iidist_temp
+                    iidp         = iidp_temp
+                    iilon        = a1lon(iix)
+                    iilat        = a1lat(iiy)
+                    xx           = iix
+                    yy           = iiy
+                  end if
+                end if
+              end if
+            end if
+          end do
+        end do
+        !-----
+        if (cflag .eq. 1) then
+          a2prepos1(xx, yy)  = nx * (iy0-1) + ix0
+          a2ipos1(xx,yy)     = a2ipos0(ix0,iy0)
+          a2idate1(xx,yy)    = a2idate0(ix0,iy0)
+          a2age1(xx,yy)      = a2age0(ix0,iy0) + hinc
+        end if
+        !-----------------
+      end if
+    end if
+  end do
+end do
+!************************************************
+! search new cyclone
+!------------------------------------------------
+do yy = 1, ny
+  do xx = 1, nx
+    if (a2pgrad1(xx,yy) .ne. miss_dbl) then
+      if (a2prepos1(xx,yy) .eq. miss_int) then
+        dp1 = a2pgrad1(xx,yy)
+        if ( dp1 .gt. thdp )then
+          a2ipos1(xx,yy)  = (yy -1)*nx + xx
+          a2idate1(xx,yy) = year1*10**6 + mon1*10**4 + day1*10**2 + hour1
+          a2age1(xx,yy)  = 0
+        end if
+      end if
+    end if
+  end do
+end do
+!-----
+RETURN
+END SUBROUTINE
+!!*****************************************************************
 SUBROUTINE connectc_bn(&
         &  a2pgrad0, a2pgrad1, a2ua0, a2va0&
         &, a2pgmax0, a2ipos0, a2idate0, a2time0&
