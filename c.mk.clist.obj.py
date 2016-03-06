@@ -13,12 +13,12 @@ import collections
 #singleday= True
 singleday = False
 
-#iyear  = 2004
-#eyear  = 2004
-iyear  = 1990
-eyear  = 2009
-lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
-#lmon   = [2,3,4,5,6,7,8,9]
+iyear  = 2014
+eyear  = 2014
+#iyear  = 1990
+#eyear  = 2009
+#lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
+lmon   = [2]
 iday   = 1
 lhour  = [0,6,12,18]
 miss   = -9999.0
@@ -48,12 +48,12 @@ def ret_var_va(model):
   elif model in ["JRA25"]:
     return "vgrd"
 
-def ret_a1iedist(a1ipos, a1lastpos):
+def ret_a1iedist(a1ipos, a1epos):
   miss     = -9999.
   a1nx   = ones(len(a1ipos))*nx
   a1miss = ones(len(a1ipos))*miss_int
   lixy   = array(map(detect_func.fortpos2pyxy, a1ipos, a1nx, a1miss))
-  lexy   = array(map(detect_func.fortpos2pyxy, a1lastpos, a1nx, a1miss))
+  lexy   = array(map(detect_func.fortpos2pyxy, a1epos, a1nx, a1miss))
 
   a1ix     = array(lixy[:,0], int32)
   a1iy     = array(lixy[:,1], int32)
@@ -110,12 +110,12 @@ for model in lmodel:
       #******* init **********
       a2num  = zeros([ny,nx],float32).reshape(ny,nx)
       #--------------
-      #lstype  = ["rvort","dtlow","dtmid","dtup","wmeanlow","wmeanup","wmaxlow","dura","pgrad","sst","lat","lon","ipos","idate","nowpos","time","lastpos","nextpos"]
-      lstype_ex  = ["dura","pgrad","lat","lon","ipos","idate","nowpos","time","lastpos","nextpos"]
+      #lstype  = ["rvort","dtlow","dtmid","dtup","wmeanlow","wmeanup","wmaxlow","dura","pgrad","sst","lat","lon","ipos","idate","nowpos","time","prepos","nextpos"]
+      lstype_ex  = ["dura","pgrad","lat","lon","ipos","epos","idate","nowpos","time","prepos","nextpos"]
       lstype_tc  = ["rvort","dtlow","dtmid","dtup","wmeanlow","wmeanup","wmaxlow","sst"]
       da1     = {}
       for stype in lstype_ex + lstype_tc:
-        #if stype in ["dura","ipos","idate","nowpos","time","lastpos","nextpos"]:
+        #if stype in ["dura","ipos","idate","nowpos","time","prepos","nextpos"]:
         #  da1[stype] = array([],int32  )
         #else:
         #  da1[stype] = array([],float32)
@@ -132,13 +132,14 @@ for model in lmodel:
         for hour in lhour:
           DTime  = datetime(year,mon,day,hour)
           a2pgrad         =cy.load_a2dat("pgrad"  ,DTime) 
-          a2life          =cy.load_a2dat("life"   ,DTime) 
+          a2dura          =cy.load_a2dat("dura"   ,DTime) 
           a2ipos          =cy.load_a2dat("ipos"   ,DTime) 
+          a2epos          =cy.load_a2dat("epos"   ,DTime) 
           a2idate         =cy.load_a2dat("idate"  ,DTime) 
-          a2lastpos       =cy.load_a2dat("lastpos",DTime) 
+          a2prepos        =cy.load_a2dat("prepos",DTime) 
           a2nextpos       =cy.load_a2dat("nextpos",DTime) 
 
-          a2dura          = detect_fsub.solvelife_dura(a2life.T, miss_int).T 
+          #a2dura          = detect_fsub.solvelife_dura(a2life.T, miss_int).T 
           #---- shrink ---------------------
           a1dura_tmp      = ma.masked_where( a2pgrad==miss, a2dura     ).compressed()
           a1dura_tmp      = array(a1dura_tmp, int32)
@@ -147,9 +148,10 @@ for model in lmodel:
           a1lat_tmp       = ma.masked_where( a2pgrad==miss, a2lat      ).compressed()
           a1lon_tmp       = ma.masked_where( a2pgrad==miss, a2lon      ).compressed()
           a1ipos_tmp      = ma.masked_where( a2pgrad==miss, a2ipos     ).compressed()
+          a1epos_tmp      = ma.masked_where( a2pgrad==miss, a2epos     ).compressed()
           a1idate_tmp     = ma.masked_where( a2pgrad==miss, a2idate    ).compressed()
           a1nowpos_tmp    = ma.masked_where( a2pgrad==miss, a2nowpos   ).compressed()
-          a1lastpos_tmp   = ma.masked_where( a2pgrad==miss, a2lastpos  ).compressed()
+          a1prepos_tmp   = ma.masked_where( a2pgrad==miss, a2prepos  ).compressed()
           a1nextpos_tmp   = ma.masked_where( a2pgrad==miss, a2nextpos  ).compressed()
           #--- a1time ------
           time            = year*10**6 + mon*10**4 + day*10**2 + hour
@@ -161,15 +163,16 @@ for model in lmodel:
           da1["lat"     ].extend( a1lat_tmp      )
           da1["lon"     ].extend( a1lon_tmp      )
           da1["ipos"    ].extend( a1ipos_tmp     )
+          da1["epos"    ].extend( a1epos_tmp     )
           da1["idate"   ].extend( a1idate_tmp    )
           da1["nowpos"  ].extend( a1nowpos_tmp   )
           da1["time"    ].extend( a1time_tmp     )
-          da1["lastpos" ].extend( a1lastpos_tmp  )
-          da1["nextpos" ].extend( a1lastpos_tmp  )
+          da1["prepos" ].extend( a1prepos_tmp  )
+          da1["nextpos" ].extend( a1nextpos_tmp  )
 
 
       ##---- iedist ------------------------
-      da1["iedist"] = ret_a1iedist(da1["ipos"], da1["lastpos"])
+      da1["iedist"] = ret_a1iedist(da1["ipos"], da1["epos"])
 
       #----- make dir ----
       sodir  = cy.path_clist("ipos", year, mon)[0]
@@ -182,7 +185,7 @@ for model in lmodel:
       for stype in _lstype:
         soname = cy.path_clist(stype, year, mon)[1]
         
-        if stype in ["dura","ipos","idate","nowpos","time","lastpos","nextpos"]:
+        if stype in ["dura","ipos","epos","idate","nowpos","time","prepos","nextpos"]:
           a1out = array( da1[stype] ,int32   )
         else:
           a1out = array( da1[stype] ,float32 )

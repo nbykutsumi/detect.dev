@@ -134,9 +134,9 @@ for model in lmodel:
       ed = calendar.monthrange(year,mon)[1]
       ##############
       for day in range(1, ed+1):
-      #for day in range(1, 1+1):
+      #for day in range(ed, ed+1):
+        print year,mon,day
         for hour in range(0, endh+1, hinc):
-          print year,mon,day,hour
           #***********************
           counter = counter + 1
           #---------

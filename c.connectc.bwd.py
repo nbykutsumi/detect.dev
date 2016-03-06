@@ -14,8 +14,8 @@ lmodel   = ["JRA55"]
 res     = "bn"
 hinc    = 6
 dDTime  = datetime.timedelta(hours=hinc)
-#flgresume  = True
-flgresume  = False
+flgresume  = True
+#flgresume  = False
 #------------------------
 iYM   = [2014,2]
 eYM   = [2014,2]
@@ -135,9 +135,10 @@ for model in lmodel:
   counter = 0
   for year in range(eyear, iyear -1, -1):
     for mon in range(emon, imon -1, -1):
-      print "connectc.py, down",year, mon
+      print "connectc.bwd.py, backward",year, mon
       ed     = calendar.monthrange(year,mon)[1]
-      iDTime = datetime.datetime(year,mon,1,0)
+      #iDTime = datetime.datetime(year,mon,1,0)
+      iDTime = datetime.datetime(year,mon,ed,0)
       eDTime = datetime.datetime(year,mon,ed,24-hinc)
       lDTime = ret_lDTime(iDTime, eDTime, dDTime)[::-1]
       for DTime1 in lDTime:
@@ -147,13 +148,14 @@ for model in lmodel:
         #***************************************
         #* names for 1
         #---------------------------------------
+        nextposname1 = cy.path_a2dat("nextpos",DTime1).srcPath
         preposname1  = cy.path_a2dat("prepos",DTime1).srcPath
         agename1     = cy.path_a2dat("age",  DTime1).srcPath
-
         #----------
         # read data
         #**********
         try:
+          a2nextpos1   = fromfile(nextposname1,int32).reshape(ny,nx)
           a2prepos1    = fromfile(preposname1, int32).reshape(ny,nx)
           a2age1       = fromfile(agename1,    int32).reshape(ny,nx)
         except IOError:
@@ -166,68 +168,96 @@ for model in lmodel:
         #--------------------------------------
         if (counter == 1):
           if flgresume == True:
-            agenextname1= cy.path_a2dat("age",DTime1+datetime.timedelta(hours=hinc)).srcPath
-            a2duranext   = fromfile(agenextname1, int32).reshape(ny,nx)
+            duraname2 = cy.path_a2dat("dura",DTime1+datetime.timedelta(hours=hinc)).srcPath
+            a2dura2   = fromfile(duraname2, int32).reshape(ny,nx)
+
+            eposname2 = cy.path_a2dat("epos",DTime1+datetime.timedelta(hours=hinc)).srcPath
+            a2epos2   = fromfile(eposname2, int32).reshape(ny,nx)
+
+
+            a2duranext= ones([ny,nx],int32)*miss_int
+            a2eposnext= ones([ny,nx],int32)*miss_int
+            for iy1 in range(ny):
+              for ix1 in range(nx):
+                if (a2nextpos1[iy1,ix1] !=miss_int): 
+                  ix2,iy2 = fortpos2pyxy(a2nextpos1[iy1,ix1], nx, miss_int)
+                  a2duranext[iy1,ix1] = a2dura2[iy2,ix2]
+                  a2eposnext[iy1,ix1] = a2epos2[iy2,ix2]
           else:  
             a2duranext   = array(ones(ny*nx).reshape(ny,nx) * miss_int, int32)
+            a2eposnext   = array(ones(ny*nx).reshape(ny,nx) * miss_int, int32)
         #--------------------------
         # initialize a2dura1 and a2dura2_new
         #*****************
-        a2dura1        = array(ones(ny*nx).reshape(ny,nx) * miss_int, int32)
-        a2duranext_new = array(ones(ny*nx).reshape(ny,nx) * miss_int, int32)
-        a2nextpos0     = array(ones(ny*nx).reshape(ny,nx) * miss_int, int32)
+        a2dura1        = ones([ny,nx],int32)* miss_int
+        a2duranext_new = ones([ny,nx],int32)* miss_int
+        a2epos1        = ones([ny,nx],int32)* miss_int
+        a2eposnext_new = ones([ny,nx],int32)* miss_int
+
+        a2nextpos0     = ones([ny,nx],int32)* miss_int
         #*****************
         ax1 = ma.masked_where(a2age1 ==miss_int, X).compressed()
         ay1 = ma.masked_where(a2age1 ==miss_int, Y).compressed()
         for iy1,ix1 in zip(ay1, ax1):
           age1    = a2age1[iy1, ix1]
           duranext = a2duranext[iy1, ix1]
+          eposnext = a2eposnext[iy1, ix1]
           (ix0,iy0) = fortpos2pyxy(a2prepos1[iy1,ix1], nx, miss_int)
           #---- 
           if (duranext == miss_int):
             #dura1 = 1000000* age1 + int(pgmax1)
             dura1 = age1
+            epos1 = pyxy2fortpos(ix1,iy1,nx)
           else:
             dura1 = duranext
+            epos1 = eposnext
           #----
           a2dura1[iy1, ix1] = dura1
+          a2epos1[iy1, ix1] = epos1
           #-----------------------
-          # fill a2dura2_new
+          # fill a2duranext_new, a2eposnext_new
           #***************
           if (ix0 != miss_int):
             a2duranext_new[iy0, ix0] = dura1
+            a2eposnext_new[iy0, ix0] = epos1
           #-----------------------
           # make "a2nextpos0"
           #***************
           if (iy0 != miss_int):
             a2nextpos0[iy0, ix0] = pyxy2fortpos(ix1, iy1, nx)
 
-
         #-------------------
         # replace a2duranext with new data
         #*******************
         a2duranext = a2duranext_new
+        a2eposnext = a2eposnext_new
         #**************************************
         # write to file
         #--------------------------------------
         # out dir
         #**********
         duradir1     = cy.path_a2dat("dura"   ,DTime1).srcDir
+        eposdir1     = cy.path_a2dat("epos"   ,DTime1).srcDir
         nextposdir0  = cy.path_a2dat("nextpos",DTime0).srcDir
 
         mk_dir(duradir1)
+        mk_dir(eposdir1)
         mk_dir(nextposdir0)
         #----------
         # out name
         #**********
         duraname1    = cy.path_a2dat("dura"   ,DTime1).srcPath
+        eposname1    = cy.path_a2dat("epos"   ,DTime1).srcPath
         nextposname0 = cy.path_a2dat("nextpos",DTime0).srcPath
         
         #----------
         # write to file
         #**********
         a2dura1.tofile(duraname1)
+        a2epos1.tofile(eposname1)
         a2nextpos0.tofile(nextposname0) 
+
+        print duraname1
         #----------
         # "nextpos" for final timestep
         #**********
@@ -236,7 +266,7 @@ for model in lmodel:
           if flgresume == True:
             preposnextname1 = cy.path_a2dat("prepos",DTime1+datetime.timedelta(hours=hinc)).srcPath
             a2preposnext1   = fromfile(preposnextname1, int32).reshape(ny,nx)
-            a2nextpos1      = ones([ny,nx]*miss_int).astype(int32) 
+            a2nextpos1      = ones([ny,nx],int32)*miss_int
             for iynext in range(0, ny):
               for ixnext in range(0, nx):
                 if (a2preposnext1[iynext, ixnext] != miss_int):

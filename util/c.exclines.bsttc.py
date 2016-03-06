@@ -26,11 +26,10 @@ if len(sys.argv)>1:
 else:
   print "cmd [year] [mon] [iday] [eday] [thdura] [region]"
   #sys.exit()
-  #year = 2014
-  year = 2004
-  mon  = 4
+  year = 2014
+  mon  = 2
   iday = 1
-  eday = 30
+  eday = 28
   thdura = 48
 #  thdura = 72
   region = "GLOB"
