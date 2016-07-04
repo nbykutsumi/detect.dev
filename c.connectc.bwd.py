@@ -14,11 +14,11 @@ lmodel   = ["JRA55"]
 res     = "bn"
 hinc    = 6
 dDTime  = datetime.timedelta(hours=hinc)
-flgresume  = True
-#flgresume  = False
+#flgresume  = True
+flgresume  = False
 #------------------------
-iYM   = [2014,2]
-eYM   = [2014,2]
+iYM   = [1990,1]
+eYM   = [2014,12]
 
 iyear, imon = iYM
 eyear, emon = eYM
@@ -137,8 +137,7 @@ for model in lmodel:
     for mon in range(emon, imon -1, -1):
       print "connectc.bwd.py, backward",year, mon
       ed     = calendar.monthrange(year,mon)[1]
-      #iDTime = datetime.datetime(year,mon,1,0)
-      iDTime = datetime.datetime(year,mon,ed,0)
+      iDTime = datetime.datetime(year,mon,1,0)
       eDTime = datetime.datetime(year,mon,ed,24-hinc)
       lDTime = ret_lDTime(iDTime, eDTime, dDTime)[::-1]
       for DTime1 in lDTime:

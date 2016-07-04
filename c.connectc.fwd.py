@@ -15,10 +15,10 @@ res     = "bn"
 tstp    = "6hr"
 hinc    = 6
 
-iyear       = 2014
-eyear       = 2014
-imon        = 2
-emon        = 2
+iyear       = 1980
+eyear       = 1990
+imon        = 1
+emon        = 12
 #----------------
 miss_dbl     = -9999.0
 miss_int     = -9999

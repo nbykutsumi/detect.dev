@@ -13,12 +13,12 @@ import collections
 #singleday= True
 singleday = False
 
-iyear  = 2014
+iyear  = 1990
 eyear  = 2014
 #iyear  = 1990
 #eyear  = 2009
-#lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
-lmon   = [2]
+lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
+#lmon   = [2]
 iday   = 1
 lhour  = [0,6,12,18]
 miss   = -9999.0

@@ -2,20 +2,22 @@ from numpy import *
 from datetime import datetime
 import Cyclone
 import Front
+import Monsoon
 import ConstMask
-import sys
+import sys, copy
 
 class Tag(ConstMask.Const):
   def __init__(self, model="JRA55", res="bn", miss=-9999.):
 
     ConstMask.Const.__init__(self, model, res)
 
-    self.model = model
-    self.res   = res
-    self.miss  = miss
-    self.Front = Front.Front(model, res, miss)
-    self.Lat   = self.Front.Lat
-    self.Lon   = self.Front.Lon
+    self.model   = model
+    self.res     = res
+    self.miss    = miss
+    self.Front   = Front.Front(model, res, miss)
+    self.Monsoon = Monsoon.MonsoonMoist(model=model, res=res, var="PWAT")
+    self.Lat     = self.Front.Lat
+    self.Lon     = self.Front.Lon
   #def init_cyclone(self, Year, Mon, tctype="bst"):
   #  """
   #  tctype: "obj", "bst"
@@ -39,6 +41,7 @@ class Tag(ConstMask.Const):
     "c"
     "fbc" or "front.t"
     "nbc" or "front.q"
+    "ms"
     """
     if type(miss) == bool: miss = self.miss
 
@@ -64,6 +67,9 @@ class Tag(ConstMask.Const):
       a2c = self.Cyclone.mkMask_exc(DTime=DTime, radkm=self.dictRadkm["c"], miss=miss)
       a2f = self.Front.mkMask_tfront(DTime=DTime, radkm=self.dictRadkm["fbc"], miss=miss)
       return ma.masked_where(a2c != miss, a2f).filled(1.0)
+
+    elif tag == "ms":
+      return self.Monsoon.loadMonsoonMoist(DTime, maskflag=True).filled(miss)
 
     else:
       print "check! tag=",tag
@@ -94,16 +100,19 @@ class Tag(ConstMask.Const):
 #    #----------
 #    return dictMask
 
-  def mkMaskFrac(self, ltag, DTime, miss=0.0):
+  def mkMaskFrac(self, ltag, DTime, ltag_2nd=[], miss=0.0):
     """
-    ltag = ["tag1", "tag2", ...], without "ot"
+    ltag = ["tag1", "tag2", ...], including tag_2nd, without "ot"
+    ltag_2nd: tags with second priority (without "ot")
     """
     dictMask = {}
     for tag in ltag:
       dictMask[tag] = self.mkMask(tag, DTime, miss=0.0)
-     
-    return self.mkMaskFracCore(dictMask, miss)
 
+    if len(ltag_2nd)==0:
+      return self.mkMaskFracCore(dictMask=dictMask, miss=miss)
+    else:
+      return self.mkMaskFracCore2(dictMask=dictMask, ltag_2nd=ltag_2nd, miss=miss)
 
   def mkMaskFracCore(self, dictMask=False, miss=0.0):
     ltag     = dictMask.keys()
@@ -116,6 +125,37 @@ class Tag(ConstMask.Const):
 
     #- ot --
     dictMaskFrac["ot"] = ma.masked_where(a2sum >0.0, ones(a2sum.shape, float32)).filled(miss)
+
+    #-- miss --
+    if miss != 0.0:
+      for tag in ltag: 
+        dictMaskFrac[tag] = ma.masked_equal(dictMaskFrac[tag], 0.0).filled(miss)
+    #----------
+    return dictMaskFrac
+
+
+  def mkMaskFracCore2(self, dictMask=False, ltag_2nd=False, miss=0.0):
+    ltag     = dictMask.keys()
+    #- 1st --
+    ltag_1st = copy.deepcopy(ltag)
+    for tag in ltag_2nd:
+      ltag_1st.remove(tag)
+    
+    a2sum_1st = array([dictMask[tag] for tag in ltag_1st]).sum(axis=0)
+    a2denomi  = ma.masked_equal(a2sum_1st, 0.0).filled(1.0)
+
+    dictMaskFrac = {}
+    for tag in ltag_1st:
+      dictMaskFrac[tag] = dictMask[tag] / a2denomi
+
+    #- 2nd --
+    a2sum_2nd = array([dictMask[tag] for tag in ltag_2nd]).sum(axis=0)
+    a2denomi  = ma.masked_equal(a2sum_2nd, 0.0).filled(1.0)
+    for tag in ltag_2nd:
+      dictMaskFrac[tag] = ma.masked_where(a2sum_1st>0, dictMask[tag] / a2denomi).filled(0.0)
+
+    #- ot --
+    dictMaskFrac["ot"] = ma.masked_where(a2sum_1st+a2sum_2nd >0.0, ones(a2sum_1st.shape, float32)).filled(miss)
 
     #-- miss --
     if miss != 0.0:
