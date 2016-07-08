@@ -1329,6 +1329,104 @@ RETURN
 END SUBROUTINE mk_territory
 
 !*****************************************************************
+SUBROUTINE mk_territory_reg(a2in, a1lon, a1lat, thdist, imiss, omiss&
+                , nx, ny, a2territory )
+  ! For Regional mask.
+  implicit none
+  !-- input -------------------------------------
+  integer                                         nx, ny
+  real,dimension(nx,ny)                       ::  a2in
+!f2py intent(in)                                  a2in
+  real,dimension(nx)                          ::  a1lon
+!f2py intent(in)                                  a1lon
+  real,dimension(ny)                          ::  a1lat
+!f2py intent(in)                                  a1lat
+
+  real                                            thdist  ! [m]
+!f2py intent(in)                                  thdist
+  real                                            imiss, omiss
+!f2py intent(in)                                  imiss, omiss
+  !-- output ------------------------------------
+  real,dimension(nx,ny)                       ::  a2territory
+!f2py intent(out)                                 a2territory
+  !-- calc --------------------------------------
+  integer                                         ix, iy, iix, iiy
+  integer                                         ngrids,sgrids,wgrids,egrids
+  real                                            lat, lon
+  real                                            iilat,iilon,idist
+  !--- para -------------------------------------
+  integer,parameter                            :: miss_int = -9999
+
+  !----------------------------------------------
+a2territory = omiss
+
+do iy = 1, ny
+  do ix = 1, nx
+    !------------------------
+    ! check
+    !------------------------
+    if (a2in(ix,iy) .eq.imiss) cycle
+    !------------------------
+    lat = a1lat(iy)
+    lon = a1lon(ix)
+    !-- find x and y maximum range --
+    wgrids = ix
+    do iix = ix-1,1,-1 
+      idist = hubeny_real(lat, lon, lat, a1lon(iix))
+      if (idist.ge.thdist) then
+        wgrids = ix-iix
+        exit
+      end if
+    end do
+
+    egrids = nx-ix
+    do iix = ix+1,nx
+      idist = hubeny_real(lat, lon, lat, a1lon(iix))
+      if (idist.ge.thdist) then
+        egrids = iix-ix
+        exit
+      end if
+    end do
+
+    sgrids = iy
+    do iiy = iy-1,1,-1
+      idist = hubeny_real(lat, 0.0, a1lat(iiy), 0.0)
+      if (idist.ge.thdist) then
+        sgrids = iy-iiy
+        exit
+      end if
+    end do
+
+    ngrids = ny-iy
+    do iiy = iy+1,ny
+      idist = hubeny_real(lat, 0.0, a1lat(iiy), 0.0)
+      if (idist.ge.thdist) then
+        ngrids = iiy-iy
+        exit
+      end if
+    end do
+
+    !-------------------------
+    ! search
+    !-------------------------
+    do iix = ix-wgrids, ix+egrids
+      do iiy = iy-sgrids, iy+ngrids
+        iilat = a1lat(iiy)
+        iilon = a1lon(iix)
+        idist = hubeny_real(lat, lon, iilat, iilon)
+        if (idist .lt. thdist) then
+          a2territory(iix,iiy) = 1.0
+        end if
+      end do
+    end do
+  end do
+end do
+RETURN
+END SUBROUTINE mk_territory_reg
+
+
+
+!*****************************************************************
 SUBROUTINE circle_xy(iy, a1lon, a1lat, thdist, miss_int, nx, ny, a1x, a1y)
   implicit none
   integer                               nx, ny
