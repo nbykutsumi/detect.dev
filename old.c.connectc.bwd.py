@@ -1,6 +1,6 @@
 from numpy import *
 from detect_fsub import *
-import IO_Master
+import Reanalysis
 import Cyclone
 import ConstCyclone
 import calendar
@@ -10,9 +10,7 @@ import os, sys
 #--------------------------------------------------
 prj     = "JRA55"
 lmodel  = [prj]
-run     = ""
 res     = "bn"
-
 hinc    = 6
 dDTime  = datetime.timedelta(hours=hinc)
 #flgresume  = True
@@ -41,6 +39,23 @@ def ret_lDTime(iDTime,eDTime,dDTime):
   total_steps = int( (eDTime - iDTime).total_seconds() / dDTime.total_seconds() + 1 )
   return [iDTime + dDTime*i for i in range(total_steps)]
 
+#####################################################
+def ret_var_ua(model):
+  if model in ["JRA25"]:
+    return "UGRD"
+  elif model in ["JRA55"]:
+    return "ugrd"
+
+#####################################################
+def ret_var_va(model):
+  if model in ["JRA25"]:
+    return "VGRD"
+  elif model in ["JRA55"]:
+    return "vgrd"
+#####################################################
+def ret_var_topo(model):
+  if model in ["JRA25","JRA55"]:
+    return "topo"
 #####################################################
 def pyxy2fortpos(ix, iy, nx):
   ix     = ix + 1  # ix = 1,2,.. nx
@@ -97,8 +112,11 @@ def read_txtlist(iname):
   return aout
 #******************************************************
 for model in lmodel:
-  iom      = IO_Master.IO_Master(prj, model, run, res)
+  ra       = Reanalysis.Reanalysis(model=model, res=res)
   cy       = Cyclone.Cyclone(model=model, res=res)
+  var_topo = ret_var_topo(model) 
+  var_ua   = ret_var_ua(model) 
+  var_va   = ret_var_va(model) 
 
   #-- const --- 
   const    = ConstCyclone.Const(model=model, res=res)
@@ -107,13 +125,13 @@ for model in lmodel:
   #****************************************************
   # read lat, lon data
   #----------------------
-  a1lat, a1lon = iom.Lat, iom.Lon
-  ny           = iom.ny
-  nx           = iom.nx
+  a1lat, a1lon = ra.Lat, ra.Lon
+  ny           = ra.ny
+  nx           = ra.nx
   X,Y          = meshgrid(arange(nx), arange(ny))
   #**************************************************
   # read topo data
-  a2topo      = iom.load_const("topo")
+  a2topo      = ra.load_const(var_topo).Data
   a2mask_topo = ma.masked_greater(a2topo, thtopo)
   #*************************************************
   counter = 0
@@ -127,32 +145,6 @@ for model in lmodel:
       for DTime1 in lDTime:
         counter = counter + 1
         DTime0 = DTime1 - datetime.timedelta(hours=hinc)
-
-
-        #***************************************
-        # "nextpos" for final timestep
-        #**********
-        if counter == 1:
-          #------
-          if flgresume == True:
-            preposnextname1 = cy.path_a2dat("prepos",DTime1+datetime.timedelta(hours=hinc)).srcPath
-            a2preposnext1   = fromfile(preposnextname1, int32).reshape(ny,nx)
-            a2nextpos1      = ones([ny,nx],int32)*miss_int
-            for iynext in range(0, ny):
-              for ixnext in range(0, nx):
-                if (a2preposnext1[iynext, ixnext] != miss_int):
-                  (ix1,iy1) = fortpos2pyxy(a2preposnext1[iynext,ixnext], nx, miss_int)
-                  a2nextpos1[iy1,ix1] = pyxy2fortpos(ixnext, iynext, nx)
-          #------
-          else:
-            a2nextpos1    = array(ones(ny*nx).reshape(ny,nx)*miss_int, int32)
-
-          nextposdir1   = cy.path_a2dat("nextpos",DTime1).srcDir
-          nextposname1  = cy.path_a2dat("nextpos",DTime1).srcPath
-          mk_dir(nextposdir1)
-          #------
-          a2nextpos1.tofile(nextposname1)
-        #----------
 
         #***************************************
         #* names for 1
@@ -170,11 +162,8 @@ for model in lmodel:
         except IOError:
           counter = counter -1
           print "No File:"
-          print preposname1
-          print nextposname1
-          print agename1
-          sys.exit()
-
+          print preposname
+          continue
         #**************************************
         #   inverse trace
         #--------------------------------------
@@ -270,30 +259,30 @@ for model in lmodel:
         a2nextpos0.tofile(nextposname0) 
 
         print duraname1
-#        #----------
-#        # "nextpos" for final timestep
-#        #**********
-#        if counter == 1:
-#          #------
-#          if flgresume == True:
-#            preposnextname1 = cy.path_a2dat("prepos",DTime1+datetime.timedelta(hours=hinc)).srcPath
-#            a2preposnext1   = fromfile(preposnextname1, int32).reshape(ny,nx)
-#            a2nextpos1      = ones([ny,nx],int32)*miss_int
-#            for iynext in range(0, ny):
-#              for ixnext in range(0, nx):
-#                if (a2preposnext1[iynext, ixnext] != miss_int):
-#                  (ix1,iy1) = fortpos2pyxy(a2preposnext1[iynext,ixnext], nx, miss_int)
-#                  a2nextpos1[iy1,ix1] = pyxy2fortpos(ixnext, iynext, nx)
-#          #------
-#          else:
-#            a2nextpos1    = array(ones(ny*nx).reshape(ny,nx)*miss_int, int32)
-#
-#          nextposdir1   = cy.path_a2dat("nextpos",DTime1).srcDir
-#          nextposname1  = cy.path_a2dat("nextpos",DTime1).srcPath
-#          mk_dir(nextposdir1)
-#          #------
-#          a2nextpos1.tofile(nextposname1)
-#        #----------
+        #----------
+        # "nextpos" for final timestep
+        #**********
+        if counter == 1:
+          #------
+          if flgresume == True:
+            preposnextname1 = cy.path_a2dat("prepos",DTime1+datetime.timedelta(hours=hinc)).srcPath
+            a2preposnext1   = fromfile(preposnextname1, int32).reshape(ny,nx)
+            a2nextpos1      = ones([ny,nx],int32)*miss_int
+            for iynext in range(0, ny):
+              for ixnext in range(0, nx):
+                if (a2preposnext1[iynext, ixnext] != miss_int):
+                  (ix1,iy1) = fortpos2pyxy(a2preposnext1[iynext,ixnext], nx, miss_int)
+                  a2nextpos1[iy1,ix1] = pyxy2fortpos(ixnext, iynext, nx)
+          #------
+          else:
+            a2nextpos1    = array(ones(ny*nx).reshape(ny,nx)*miss_int, int32)
+
+          nextposdir1   = cy.path_a2dat("nextpos",DTime1).srcDir
+          nextposname1  = cy.path_a2dat("nextpos",DTime1).srcPath
+          mk_dir(nextposdir1)
+          #------
+          a2nextpos1.tofile(nextposname1)
+        #----------
 
 
 

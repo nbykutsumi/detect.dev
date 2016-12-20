@@ -57,7 +57,7 @@ class Front(object):
     thorog     = self.thorog
     thgradorog = self.thgradorog
 
-    srcDir     = ra.load_const("topo").srcDir
+    srcDir     = ra.path_const("topo").srcDir
     self.maxorogname= os.path.join(srcDir, "maxtopo.0300km.%s"%(res))
     self.a2maxorog  = fromfile(self.maxorogname, float32).reshape(ny,nx)
 

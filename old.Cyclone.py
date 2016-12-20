@@ -17,6 +17,13 @@ def read_txtlist(iname):
   aout  = array(lines, float32)
   return aout
 
+def ret_baseDir(model="JRA55", res="bn"):
+  hostname     = socket.gethostname()
+  if hostname == "well":
+    return "/media/disk2/out/%s/%s"%(model,res)
+  elif hostname in ["mizu","naam"]:
+    return "/tank/utsumi/out/%s/%s"%(model,res)
+
 def ret_lYM(iYM, eYM):
   iYear, iMon = iYM
   eYear, eMon = eYM
@@ -69,18 +76,13 @@ def expand8grids(lxy, ny, nx):
   return  lXY
   
 #---------------------------------------------------
-class Cyclone(object):
-  def __init__(self, cfg):
-    self.baseDir = cfg["baseDir"]
-    basebaseDir  = "/".join(self.baseDir.split("/")[:-1])
+class Cyclone(Const):
+  def __init__(self, model="JRA55", res="bn"):
+    Const.__init__(self, model=model, res=res)
+    self.baseDir = ret_baseDir(model=model, res=res)
     #------------
-    try:
-      self.Lat     = read_txtlist( os.path.join(basebaseDir, "lat.txt"))
-      self.Lon     = read_txtlist( os.path.join(basebaseDir, "lon.txt"))
-    except IOError:
-      self.Lat     = read_txtlist( os.path.join(self.baseDir, "lat.txt"))
-      self.Lon     = read_txtlist( os.path.join(self.baseDir, "lon.txt"))
-
+    self.Lat     = read_txtlist( os.path.join(self.baseDir, "lat.txt"))
+    self.Lon     = read_txtlist( os.path.join(self.baseDir, "lon.txt"))
     self.ny      = len(self.Lat)
     self.nx      = len(self.Lon)
     self.dNumType= {"life"    :int32,
@@ -117,7 +119,7 @@ class Cyclone(object):
     Hour = DTime.hour
     self.tstep   = "6hr"
     self.srcDir  = os.path.join(self.baseDir, self.tstep, var, "%04d"%(Year), "%02d"%(Mon))
-    self.srcPath = os.path.join(self.srcDir, "%s.%04d%02d%02d%02d.%dx%d"%(var,Year,Mon,Day,Hour, self.ny, self.nx))
+    self.srcPath = os.path.join(self.srcDir, "%s.%04d%02d%02d%02d.bn"%(var,Year,Mon,Day,Hour))
     return self
 
   def load_a2dat(self, var, DTime):

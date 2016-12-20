@@ -1,66 +1,46 @@
-#----------------------------------
-import sys, os
-myPath  = os.path.abspath(__file__)
-myDir   = os.path.dirname(myPath)
-parDir  = "/".join(myDir.split("/")[:-1])
-sys.path.append(parDir)
-#----------------------------------
-from   mpl_toolkits.basemap import Basemap
-from   numpy import *
-from   detect_fsub import *
-from   datetime import datetime, timedelta
+from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
-import config_func
-import detect_func
-import IO_Master
-import BestTrackTC
-import util
-import Cyclone
+from numpy import *
+from ctrack_fsub import *
+import calendar
+import ctrack_para
+import ctrack_func
+import tc_para
+import tc_func
+import sys, os
 #--------------------------------------
-#prj   = "JRA55"
-##model = "anl_p125"
-#model = prj
-#run   = ""
-#res   = "bn"
-
-#prj     = "JRA55"
-#model   = prj
-#run     = ""
-#res     = "bn"
-
-prj     = "HAPPI"
-model   = "MIROC5"
-run     = "C20-ALL-001"
-res     = "128x256"
+model = "anl_p125"
 
 #singleday = True
 singleday = False
 unitdist  = 10.0 # km / hour
 #unitdist  = 150.0 # km / hour  # test
 #----------------
-iDTime = datetime(2006,1,1,6)
-eDTime = datetime(2006,1,30,0)
-dDTime = timedelta(hours=6)
-lDTime = util.ret_lDTime(iDTime, eDTime, dDTime)
-
-thdura = 48
-#thdura = 72
-region = "GLOB"
-#region = "SAM"
-#region = "NAF"
-
-iom    = IO_Master.IO_Master(prj, model, run, res)
-bst    = BestTrackTC.BestTrack("IBTrACS")
-cfg = config_func.config_func(prj=prj, model=model, run=run)
-iom = IO_Master.IO_Master(prj, model, run, res)
-cy  = Cyclone.Cyclone(cfg=cfg)
-#----------------------------------
+if len(sys.argv)>1:
+  year   = int(sys.argv[1])
+  mon    = int(sys.argv[2])
+  iday   = int(sys.argv[3])
+  eday   = int(sys.argv[4])
+  thdura = int(sys.argv[5])
+  region = sys.argv[6]
+else:
+  print "cmd [year] [mon] [iday] [eday] [thdura] [region]"
+  #sys.exit()
+  year = 2014
+  mon  = 2
+  iday = 1
+  eday = 28
+  thdura = 48
+#  thdura = 72
+  region = "GLOB"
+#  region = "SAM"
+#  region = "NAF"
+#----------------
+print year,mon,iday,eday,thdura,region
 #iclass_min = 2
-#iclass_min = 1
-iclass_min = 0
+iclass_min = 1
 
-a1lat   = iom.Lat
-a1lon   = iom.Lon
+a1lat, a1lon = ctrack_func.ret_a1latlon("JRA55", model)
 ny      = len(a1lat)
 nx      = len(a1lon)
 
@@ -100,16 +80,21 @@ elif region == "NAF":
   urlat   = 40.
   lllon   = 0.
   urlon   = 55.
+ 
+
 
 
 #*************************************
 # FUNCTION
 #*************************************
 def mk_dexcloc(year,mon):
+  clistdir  = "/media/disk2/out/JRA55/bn/6hr/clist/%04d/%02d"%(year,mon)
   da1       = {}
+  #lstype  = ["rvort","dtlow","dtmid","dtup","wmeanlow","wmeanup","wmaxlow","dura","pgrad","sst","lat","lon","ipos","nowpos","time","initsst"]
+  #lstype  = ["dura","pgrad","lat","lon","nowpos","time","iedist"]
   lstype  = ["dura","pgrad","lat","lon","nowpos","time","iedist"]
   for stype in lstype:
-    siname        = cy.path_clist(stype, year, mon)[1]
+    siname        = clistdir  + "/%s.%04d.%02d.bn"%(stype,year,mon)
     if stype in ["dura","ipos","idate","nowpos","time"]:
       da1[stype]  = fromfile(siname,   int32)
     else:
@@ -147,10 +132,12 @@ def mk_dexcloc(year,mon):
       continue
 
     #---- time ------
-    yeart,mont,dayt,hourt = detect_func.solve_time(time)
+    yeart,mont,dayt,hourt = ctrack_func.solve_time(time)
 
     #---- location --
-    ix, iy            = detect_func.fortpos2pyxy( nowpos, nx, -9999)
+    ix, iy            = ctrack_func.fortpos2pyxy( nowpos, nx, -9999)
+
+
 
     #---- dictionary --
     if dtcloc.has_key((dayt,hourt)):
@@ -163,91 +150,90 @@ def mk_dexcloc(year,mon):
 #************************************
 
 #----------------------------
-thpgrad = cy.thpgrad
-dpgradrange  = {0:[thpgrad, 1.e+10]}
+dpgradrange  = ctrack_para.ret_dpgradrange()
 #lclass  = dpgradrange.keys()[2:]
 lclass  = dpgradrange.keys()
 nclass  = len(lclass)
+thpgrad = dpgradrange[0][0]
+#----------------------------
+psldir_root     = "/media/disk2/data/JRA55/bn.%s/6hr/PRMSL"%(model)
+pgraddir_root   = "/media/disk2/out/JRA55/bn/6hr/pgrad"
+lifedir_root    = "/media/disk2/out/JRA55/bn/6hr/life"
+nextposdir_root = "/media/disk2/out/JRA55/bn/6hr/nextpos"
 #************************************
 dtrack     = {}
 for iclass in lclass:
   dtrack[iclass] = []
 #------------------------------------
+#************************
+# load TCs
+#------------------------
+dTC  = tc_func.ret_ibtracs_dpyxy(year, a1lat, a1lon)
+
+#------------------------
+#eday = calendar.monthrange(year,mon)[1]
 ##############
-for itime, DTime in enumerate(lDTime):
-  print "tracklines",DTime
-  year = DTime.year
-  mon  = DTime.month
-  day  = DTime.day
-  hour = DTime.hour
-  #************************
-  # load TCs
-  #------------------------
-  if ((itime ==0)or(DTime.year > lDTime[itime-1].year)):
-    dTC   = bst.ret_dpyxy(year, a1lon, a1lat)
-
-  if ((itime ==0)or(DTime.month != lDTime[itime-1].month)):
-    dexcloc =  mk_dexcloc(year,mon)
-
-
-  ## Test
-  dTC[DTime.year,DTime.month,DTime.day,DTime.hour] =[]   # test
-
-  #-- check exc existence ----
-  if not dexcloc.has_key((day,hour)):
-    continue
-  #---------------------------
-  nextposname     = cy.path_a2dat("nextpos",DTime).srcPath
-  a2nextpos       = fromfile(nextposname,  int32).reshape(ny, nx)
-
-
-  #---------------------------
-  ldat    = dexcloc[day,hour]
-  print ldat
-  for locdat in ldat:
-    ix,iy,pgrad = locdat
-
-    #-- nextpos ------------
-    nextpos   = a2nextpos[iy, ix]
-    x_next, y_next = detect_func.fortpos2pyxy(nextpos, nx, miss_int)
-
-    if ( (x_next == miss_int) & (y_next == miss_int) ):
-      continue            
-    #-- check TC -----------
-    tcflag = 0
-    if (ix,iy) in dTC[year,mon,day,hour]:
-      print "TC!, lat,lon=",year,mon,day,hour,iy-90.0, ix
-      tcflag = tcflag +1
-    else:
-      ixfort = ix +1
-      iyfort = iy +1
-      a1surrxfort, a1surryfort = detect_fsub.mk_8gridsxy(ixfort, iyfort, nx, ny)
-      for itemp in range(0,8):
-        ixt =  a1surrxfort[itemp] -1
-        iyt =  a1surryfort[itemp] -1
-        if (ixt,iyt) in dTC[year,mon,day,hour]:
-          print "TC!, lat,lon=",year,mon,day,hour,iy-90.0, ix
-          tcflag = tcflag + 1
-    #
-    if tcflag > 0:
+dexcloc =  mk_dexcloc(year,mon)
+print year,mon   
+for day in range(iday, eday+1):
+  print "tracklines",model,year, mon, day
+  for hour in [0, 6, 12, 18]:
+    #-- check exc existence ----
+    if not dexcloc.has_key((day,hour)):
       continue
-    #-----------------------
-    #for iclass in range(0, nclass):
-    for iclass in lclass:
-      pgrad_min = dpgradrange[iclass][0]
-      pgrad_max = dpgradrange[iclass][1]
-      if (pgrad_min <= pgrad < pgrad_max):
-        #------
-        if ( (x_next == miss_int) & (y_next == miss_int) ):
-          continue
-        #------
-        lat       = a1lat[iy]
-        lon       = a1lon[ix]
+    #---------------------------
+    stime   = "%04d%02d%02d%02d"%(year, mon, day, hour)
+    #---------------------------
+    nextposdir      = nextposdir_root + "/%04d/%02d"%(year, mon)
+    nextposname     = nextposdir + "/nextpos.%s.bn"%(stime)
+    a2nextpos       = fromfile(nextposname,  int32).reshape(ny, nx)
 
-        lat_next  = a1lat[y_next]
-        lon_next  = a1lon[x_next]
-        #
-        dtrack[iclass].append([[year, mon, day, hour],[lat, lon, lat_next, lon_next]])
+    #---------------------------
+    ldat    = dexcloc[day,hour]
+    for locdat in ldat:
+      ix,iy,pgrad = locdat
+
+      #-- nextpos ------------
+      nextpos   = a2nextpos[iy, ix]
+      x_next, y_next = ctrack_func.fortpos2pyxy(nextpos, nx, miss_int)
+
+      if ( (x_next == miss_int) & (y_next == miss_int) ):
+        continue            
+      #-- check TC -----------
+      tcflag = 0
+      if (ix,iy) in dTC[year,mon,day,hour]:
+        print "TC!, lat,lon=",year,mon,day,hour,iy-90.0, ix
+        tcflag = tcflag +1
+      else:
+        ixfort = ix +1
+        iyfort = iy +1
+        a1surrxfort, a1surryfort = ctrack_fsub.mk_8gridsxy(ixfort, iyfort, nx, ny)
+        for itemp in range(0,8):
+          ixt =  a1surrxfort[itemp] -1
+          iyt =  a1surryfort[itemp] -1
+          if (ixt,iyt) in dTC[year,mon,day,hour]:
+            print "TC!, lat,lon=",year,mon,day,hour,iy-90.0, ix
+            tcflag = tcflag + 1
+      #
+      if tcflag > 0:
+        continue
+      #-----------------------
+      #for iclass in range(0, nclass):
+      for iclass in lclass:
+        pgrad_min = dpgradrange[iclass][0]
+        pgrad_max = dpgradrange[iclass][1]
+        if (pgrad_min <= pgrad < pgrad_max):
+          #------
+          if ( (x_next == miss_int) & (y_next == miss_int) ):
+            continue
+          #------
+          lat       = a1lat[iy]
+          lon       = a1lon[ix]
+
+          lat_next  = a1lat[y_next]
+          lon_next  = a1lon[x_next]
+          #
+          dtrack[iclass].append([[year, mon, day, hour],[lat, lon, lat_next, lon_next]])
 
 
 ##*************\***********
@@ -291,21 +277,18 @@ for iclass in lclass:
     if ((lon1 < lllon) or (urlon < lon1)):
       continue
     #--------------
-    if iclass ==0:
+    if iclass ==1:
+      scol="gray"
+      #scol="b"
+    elif iclass ==2:
+      scol="b"
+      #scol="r"
+    elif iclass ==3:
+      #scol="g"
       scol="r"
-
-#    if iclass ==1:
-#      scol="gray"
-#      #scol="b"
-#    elif iclass ==2:
-#      scol="b"
-#      #scol="r"
-#    elif iclass ==3:
-#      #scol="g"
-#      scol="r"
-#    elif iclass == 4:
-#      #scol="gray"
-#      scol="r"
+    elif iclass == 4:
+      #scol="gray"
+      scol="r"
  
     #------------------------------------
     if abs(lon1 - lon2) >= 180.0:
@@ -345,17 +328,14 @@ meridians = arange(0.,360.,10.)
 M.drawmeridians(meridians,labels=[0,0,0,1],fontsize=lonlatfontsize,rotation=lonrotation)
 
 #-- title --------------------
-stitle  = "%04d/%02d/%02d-%04d/%02d/%02d"\
-          %(iDTime.year, iDTime.month, iDTime.day, eDTime.year, eDTime.month, eDTime.day)
+stitle  = "%04d %02d %02d-%02d"%(year,mon,iday, eday)
 axmap.set_title(stitle, fontsize=10.0)
 
 #-- save --------------------
 print "save"
-#sodir   = "/media/disk2/out/cyclone/exc.track.w.bsttc.JRA55/%s"%(region)
-sodir   = "/home/utsumi/temp"
-util.mk_dir(sodir)
-#soname  = sodir + "/exc.track.w.bsttc.%s.%04d.%02d.%02d-%02d.%02dh.png"%(model, year,mon, iday, eday, thdura)
-soname  = sodir + "/exc.track.png"
+sodir   = "/media/disk2/out/cyclone/exc.track.w.bsttc.JRA55/%s"%(region)
+ctrack_func.mk_dir(sodir)
+soname  = sodir + "/exc.track.w.bsttc.%s.%04d.%02d.%02d-%02d.%02dh.png"%(model, year,mon, iday, eday, thdura)
 plt.savefig(soname)
 plt.clf()
 print soname

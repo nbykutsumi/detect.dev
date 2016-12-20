@@ -1,15 +1,21 @@
-from numpy import *
+import IO_Master
 from datetime import datetime, timedelta
-import Tag
 
-model = "JRA55"
-res   = "bn"
-ltag = ["tc","c","fbc","ms"]
+prj    = "JRA55"
+model  = ""
+run    = ""
+res    = "bn"
 
-DTime = datetime(1998,9,21,0)
-T     = Tag.Tag(model=model, res=res)
-T.init_cyclone([1998,9],[1998,9], model=model)
-dmask = T.mkMaskFrac(ltag, DTime)
+#prj    = "HAPPI"
+#model  = ""
+#run    = "C20-ALL-001"
+#res    = ""
 
-dmask2=T.mkMaskFrac(ltag, DTime, ltag_2nd=["fbc"])
-print dmask
+iom    = IO_Master.IO_Master(prj, model, run, res)
+
+var    = "ta"
+plev   = 500
+
+lat = iom.Lat
+slat="\n".join(map(str,lat)).strip()
+print slat

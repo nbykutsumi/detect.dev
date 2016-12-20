@@ -1,10 +1,13 @@
 from numpy import *
 from detect_fsub import *
 from datetime import datetime
-import IO_Master
+import Reanalysis
 import Cyclone
 import calendar
 import detect_func
+#import ctrack_para
+#import ctrack_func
+#import tc_para
 import collections
 #-----------------------------------------
 #singleday= True
@@ -30,6 +33,24 @@ res    = "bn"
 
 #--- a2lat, a2lon --------------
 #*********** functions *********
+def ret_var_ta(model):
+  if model in ["JRA55"]:
+    return "tmp"
+  elif model in ["JRA25"]:
+    return "TMP"
+
+def ret_var_ua(model):
+  if model in ["JRA55"]:
+    return "UGRD"
+  elif model in ["JRA25"]:
+    return "ugrd"
+
+def ret_var_va(model):
+  if model in ["JRA55"]:
+    return "VGRD"
+  elif model in ["JRA25"]:
+    return "vgrd"
+
 def ret_a1iedist(a1ipos, a1epos):
   miss     = -9999.
   a1nx   = ones(len(a1ipos))*nx
@@ -61,15 +82,18 @@ def ret_a1iedist(a1ipos, a1epos):
 #---------------------------
 for model in lmodel:
   #---------
-  iom      = IO_Master.IO_Master(prj, model, run, res)
+  ra       = Reanalysis.Reanalysis(model=model,res=res)
   cy       = Cyclone.Cyclone(model=model,res=res)
 
-  a1lat    = iom.Lat
-  a1lon    = iom.Lon
+  a1lat    = ra.Lat
+  a1lon    = ra.Lon
   a2lon, a2lat = meshgrid(a1lon, a1lat)
-  ny       = iom.ny
-  nx       = iom.nx
+  ny       = ra.ny
+  nx       = ra.nx
   #---------
+  var_ta   = ret_var_ta(model)
+  var_ua   = ret_var_ua(model)
+  var_va   = ret_var_va(model)
   #---------
   plev_low = 850*100.0 # (Pa)
   plev_mid = 500*100.0 # (Pa)

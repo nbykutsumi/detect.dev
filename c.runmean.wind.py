@@ -1,42 +1,67 @@
 from numpy import *
+from   datetime import datetime, timedelta
+import util
 import os, sys
 import calendar
-import datetime
-import Reanalysis
+import config_func
+import IO_Master
 import Cyclone
 #******************************************************
 #******************************************************
-model   = "JRA55"
-res     = "bn"
+#prj     = "JRA55"
+#model   = prj
+#run     = ""
+#res     = "bn"
+#tstp    = "6hr"
+#noleap  = False
+
+prj     = "HAPPI"
+model   = "MIROC5"
+run     = "C20-ALL-001"
+res     = "128x256"
+tstp    = "day"
+noleap  = True
+
 lvar   = ["ua","va"]
-plev  = 500
+plev   = 500
+
+lhour  = {"6hr": [0,6,12,18]
+         ,"day": [0]
+         }[tstp]
+
+iDTime = datetime(2006,1,1,6)
+#eDTime = datetime(2006,1,2,18)
+eDTime = datetime(2006,12,31,18)
+dDTime = timedelta(days=1)
+
+ret_lDTime = {False: util.ret_lDTime
+             ,True : util.ret_lDTime_noleap
+             }[noleap]
+
+lDTime   = ret_lDTime(iDTime, eDTime, dDTime)
+
+miss   = -9999.
 #******************************************************
 # set dlyrange
 #******************************************************
 dnx    = {}
 dny    = {}
 #****************************************************
-#lyear  = [2010,2011,2012,2013,2014]
-lyear  = range(1990,2010)
-imon   = 1
-emon   = 12
-
-ra     = Reanalysis.Reanalysis(model=model, res=res)
-cy     = Cyclone.Cyclone(model=model, res=res)
-nx     = ra.nx
-ny     = ra.ny
+cfg    = config_func.config_func(prj, model, run)
+iom    = IO_Master.IO_Master(prj, model, run, res)
+cy     = Cyclone.Cyclone(cfg)
+nx     = iom.nx
+ny     = iom.ny
 
 dw         = 7
 ldaydelta  = range(-dw, dw+1)
+
+Load_Var = {"6hr": iom.Load_6hrPlev
+           ,"day": iom.Load_dayPlev
+           }[tstp]
 #####################################################
 # Function
 #####################################################
-def ret_dvarname(model):
-  if   model in ["JRA25"]:
-    return {"ua":"UGRD", "va":"VGRD"}
-  elif model in ["JRA55"]:
-    return {"ua":"ugrd", "va":"vgrd"}
-
 def check_file(sname):
   if not os.access(sname, os.F_OK):
     print "no file:",sname
@@ -48,84 +73,76 @@ def mk_dir(sdir):
   except:
     pass
 #******************************************************
-def date_slide(year,mon,day, daydelta):
-  today       = datetime.date(year, mon, day)
-  target      = today + datetime.timedelta(daydelta)
+def date_slide(year,mon,day, daydelta, noleap):
+  today       = datetime(year, mon, day)
+  target      = today + timedelta(daydelta)
   targetyear  = target.year
   #***********
-  if ( calendar.isleap(targetyear) ):
-    leapdate   = datetime.date(targetyear, 2, 29)
-    #---------
-    if (target <= leapdate) & (leapdate < today):
-      target = target + datetime.timedelta(-1)
-    elif (target >= leapdate ) & (leapdate > today):
-      target = target + datetime.timedelta(1)
+  if noleap == True:
+    if ( calendar.isleap(targetyear) ):
+      leapdate   = datetime(targetyear, 2, 29)
+      #---------
+      if (target <= leapdate) & (leapdate < today):
+        target = target + timedelta(days=-1)
+      elif (target >= leapdate ) & (leapdate > today):
+        target = target + timedelta(days=1)
   #-----------
   return target
   
 #******************************************************
-dvarname = ret_dvarname(model)
-
 for var in lvar:
-  varname = dvarname[var]
   #------
-#  odir_root = "/media/disk2/out/JRA55/bn/run.mean/%s"%(varname)
-  odir_root = os.path.join(cy.baseDir,"run.mean",varname)
+  odir_root = os.path.join(cfg["baseDir"],"run.mean",var)
   #------------------------------
   # make heads and tails
   #------------------------------
-  for year in lyear:
-  #for year in range(1981, 1981+1):
-    for  mon in range(imon, emon + 1):
-      #*************
-      odir       = odir_root + "/%04d/%02d"%(year, mon)
-      mk_dir(odir)
-      ##*************
-      ## no leap
-      ##*************
-      #if (mon==2)&(calendar.isleap(year)):
-      #  ed = calendar.monthrange(year,mon)[1] -1
-      #else:
-      #  ed = calendar.monthrange(year,mon)[1]
-  
-      ed = calendar.monthrange(year,mon)[1]
-      #*************
-      for day in range(1, ed + 1):
-        stime  = "%04d%02d%02d%02d"%(year,mon,day, 0)
-        #***********
-        oname  = odir + "/run.mean.%s.%04dhPa.%s.%s"%(varname, plev, stime, res)
-        #*********************
-        # start running mean
-        #*********************
-        # dummy
-        #********
-        aout  = zeros([ny,nx], float32)
-        ntimes = 0
-        #********
-        for daydelta in ldaydelta:
-          target     = date_slide( year, mon, day, daydelta)
-          targetyear = target.year
-          targetmon  = target.month
-          targetday  = target.day
-          #-------------------
-          for targethour in [0, 6, 12, 18]:
-            tDTime = datetime.datetime(targetyear, targetmon, targetday, targethour)
-            ntimes = ntimes + 1
-            try:
-              ain    = ra.load_6hr(varname, tDTime, plev).Data
-            except IOError:
-              print "no file", varname, tDTime, plev
-              ntimes = ntimes - 1
-              continue
-            #--------------------
-            # add 
-            #--------------------
-            aout  = aout + ain
-        #*****************
-        aout    = aout / ntimes
-        #*****************
-        print oname
-        aout.tofile(oname)
+  for DTime in lDTime:
+    #*************
+    year   = DTime.year
+    mon    = DTime.month
+    day    = DTime.day
+    odir   = odir_root + "/%04d/%02d"%(year, mon)
+    mk_dir(odir)
+    #*************
+    stime  = "%04d%02d%02d%02d"%(year,mon,day, 0)
+    #***********
+    oname  = odir + "/run.mean.%s.%04dhPa.%s.%s"%(var, plev, stime, res)
+    #*********************
+    # start running mean
+    #*********************
+    # dummy
+    #********
+    aout  = zeros([ny,nx], float32)
+    ntimes = 0
+    #********
+    for daydelta in ldaydelta:
+      target     = date_slide( year, mon, day, daydelta, noleap)
+      targetyear = target.year
+      targetmon  = target.month
+      targetday  = target.day
+      #-------------------
+      for targethour in lhour:
+        tDTime = datetime(targetyear, targetmon, targetday, targethour)
+        ntimes = ntimes + 1
+        try:
+          #ain    = iom.Load_6hrPlev(var, tDTime, plev)
+          ain    = Load_Var(var, tDTime, plev)
+        except IOError:
+          print "no file", var, tDTime, plev
+          ntimes = ntimes - 1
+          continue
+        #--------------------
+        # add 
+        #--------------------
+        aout  = aout + ain
+    #*****************
+    aout    = aout / ntimes
+
+    if ma.isMA(aout):
+      aout = aout.filled(miss)
+    #*****************
+    print oname
+    aout.tofile(oname)
   
 
 
