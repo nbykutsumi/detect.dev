@@ -203,7 +203,6 @@ for itime, DTime in enumerate(lDTime):
 
   #---------------------------
   ldat    = dexcloc[day,hour]
-  print ldat
   for locdat in ldat:
     ix,iy,pgrad = locdat
 

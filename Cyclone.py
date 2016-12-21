@@ -69,10 +69,12 @@ def expand8grids(lxy, ny, nx):
   return  lXY
   
 #---------------------------------------------------
-class Cyclone(object):
+class Cyclone(Const):
   def __init__(self, cfg):
     self.baseDir = cfg["baseDir"]
     basebaseDir  = "/".join(self.baseDir.split("/")[:-1])
+
+    Const.__init__(self)
     #------------
     try:
       self.Lat     = read_txtlist( os.path.join(basebaseDir, "lat.txt"))
@@ -107,7 +109,8 @@ class Cyclone(object):
                     "sst"     :float32,
                     "land"    :float32,
                     "initsst" :float32,
-                    "initland":float32
+                    "initland":float32,
+                    "iedist"  :float32
                    }
 
   def path_a2dat(self, var, DTime):

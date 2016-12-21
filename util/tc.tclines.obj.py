@@ -6,45 +6,53 @@ from datetime import datetime
 import socket
 import calendar
 import sys, os
+import util
+import config_func
 import Cyclone
-import ConstCyclone
 import util_para
 import detect_func
-#from ctrack_fsub import *
-#import ctrack_para
-#import ctrack_func
-#import tc_para
-#import tc_func
 #--------------------------------------
-iyear = 2014
-eyear = 2014
+iyear = 2006
+eyear = 2006
 lyear = range(iyear,eyear+1)
-lseason = [6]
+lseason = [1]
 iday  = False
 eday  = False
 
+#prj   = "JRA55"
+##model = "anl_p125"
+#model = prj
+#run   = ""
+#res   = "bn"
+
+#prj     = "JRA55"
+#model   = prj
+#run     = ""
+#res     = "bn"
+
+prj     = "HAPPI"
+model   = "MIROC5"
+run     = "C20-ALL-001"
+res     = "128x256"
+
 region= "GLOB"
-model = "JRA55"
-res   = "bn"
 #singleday = True
 singleday = False
 #unitdist  = 20.0 # km / hour
 unitdist  = 0.0 # km / hour  # test
-cy      = Cyclone.Cyclone(model=model, res=res)
+cfg     = config_func.config_func(prj=prj, model=model, run=run)
+cy      = Cyclone.Cyclone(cfg=cfg)
 a1lat   = cy.Lat
 a1lon   = cy.Lon
 ny      = cy.ny
 nx      = cy.nx
 
-Ccy     = ConstCyclone.Const(model=model,res=res)
 
-thrvort = Ccy.thrvort
-thpgrad = Ccy.thpgrad
-thwcore = Ccy.thwcore
-thdura  = Ccy.thdura
-thinitsst = Ccy.thsst
-
-
+thrvort   = cy.thrvort
+thpgrad   = cy.thpgrad
+thwcore   = cy.thwcore
+thdura    = cy.thdura
+thinitsst = cy.thsst
 
 lonlatfontsize = 10.0
 #lonrotation    = 90
@@ -127,8 +135,6 @@ def mk_dtcloc(year,mon):
 
     #---- location --
     ix, iy            = detect_func.fortpos2pyxy( nowpos, nx, -9999)
-
-
 
     #---- dictionary --
     if dtcloc.has_key((dayt,hourt)):
@@ -260,10 +266,11 @@ for season in lseason:
   #-- save --------------------
   print "save"
   hostname = socket.gethostname()
-  if   hostname == "well":
-    sodir   = "/media/disk2/out/cyclone/tc.obj"
-  elif hostname in ["mizu","naam"]:
-    sodir   = "/tank/utsumi/out/cyclone/tc.obj"
+  #if   hostname == "well":
+  #  sodir   = "/media/disk2/out/cyclone/tc.obj"
+  #elif hostname in ["mizu","naam"]:
+  #  sodir   = "/tank/utsumi/out/cyclone/tc.obj"
+  sodir  = "/home/utsumi/temp"
   #----
   detect_func.mk_dir(sodir)
   soname  = sodir + "/tclines.%s.%s.%04d.%s.%02dh.wc%3.2f.sst%d.vor%.1e.png"%(model, region, year, season, thdura, thwcore, thinitsst -273.15, thrvort)

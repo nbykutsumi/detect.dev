@@ -1,31 +1,43 @@
-import sys, datetime
-import Cyclone
 from numpy import *
 from collections import deque
+from   datetime import datetime, timedelta
+import sys
+import util
+import config_func
+import Cyclone
 
-iyear  = 2010
-eyear  = 2014
-lyear  = range(iyear,eyear+1)
-lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
-#lmon   = [2,3,4,5,6]
-model  = "JRA55"
-res    = "bn"
-#--- year and month when the first data available --
-iyear_data = 2010
+#prj   = "JRA55"
+##model = "anl_p125"
+#model = prj
+#run   = ""
+#res   = "bn"
+#noleap= False
+
+prj     = "HAPPI"
+model   = "MIROC5"
+run     = "C20-ALL-001"
+res     = "128x256"
+noleap  = True
+iyear_data = 2006
 imon_data  = 1
-#-------------
-cyclone= Cyclone.Cyclone(model, res)
+
+iYM    = [2006,1]
+eYM    = [2006,1]
+lYM    = util.ret_lYM(iYM, eYM)
+
+cfg    = config_func.config_func(prj, model, run)
+cy     = Cyclone.Cyclone(cfg)
 #**********************************************
 def ret_a1initState(var, year,mon,dinitState_pre):
   #----------
   dinitState              = {}
   dinitState[-9999,-9999] = -9999.0
   #----------
-  a1idate     = cyclone.load_clist("idate",year,mon) 
-  a1ipos      = cyclone.load_clist("ipos" ,year,mon) 
-  a1time      = cyclone.load_clist("time" ,year,mon) 
-  a1state     = cyclone.load_clist(var    ,year,mon) 
-  a1land      = cyclone.load_clist("land" ,year,mon) 
+  a1idate     = cy.load_clist("idate",year,mon) 
+  a1ipos      = cy.load_clist("ipos" ,year,mon) 
+  a1time      = cy.load_clist("time" ,year,mon) 
+  a1state     = cy.load_clist(var    ,year,mon) 
+  a1land      = cy.load_clist("land" ,year,mon) 
 
   #------------------------
   n  = len(a1idate)
@@ -55,9 +67,9 @@ def ret_a1initState(var, year,mon,dinitState_pre):
 #**********************************************
 
 #--- init ----
-imon       = lmon[0]
-date_first = datetime.date(iyear,imon, 1)
-date_pre   = date_first + datetime.timedelta(days = -2)
+iyear, imon= lYM[0]
+date_first = datetime(iyear,imon, 1)
+date_pre   = date_first + timedelta(days = -2)
 year_pre   = date_pre.year
 mon_pre    = date_pre.month
 if (iyear == iyear_data)&(imon ==imon_data):
@@ -67,7 +79,7 @@ else:
   dinitsst , a1temp = ret_a1initState("sst" , year_pre, mon_pre, {} )
   dinitland, a1temp = ret_a1initstate("land", year_pre, mon_pre, {} )
 #-------------
-for year, mon in [[year,mon] for year in lyear for mon in lmon]:
+for [year, mon] in lYM:
   dinitsst_pre          = dinitsst
   dinitsst, a1initsst   = ret_a1initState( "sst", year, mon, dinitsst_pre )
 
@@ -76,8 +88,8 @@ for year, mon in [[year,mon] for year in lyear for mon in lmon]:
  
  
   #---- oname ----------------
-  name_sst  = cyclone.path_clist("initsst" ,year,mon).srcPath
-  name_land = cyclone.path_clist("initland",year,mon).srcPath
+  name_sst  = cy.path_clist("initsst" ,year,mon)[1]
+  name_land = cy.path_clist("initland",year,mon)[1]
   a1initsst.tofile(name_sst)
   a1initland.tofile(name_land)
   print name_sst

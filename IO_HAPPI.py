@@ -14,7 +14,9 @@ class IO_Happi(Happi):
                ,"va"   :"v"
                ,"slp"  :"slp"
                ,"prcp" :"prcp"
+               ,"sst"  :"Ts"
                ,"topo" :"topo"
+               ,"land" :"lndfrc"
                }
 
     def Load_6hrPlev(self, var, DTime, plev):
@@ -32,6 +34,10 @@ class IO_Happi(Happi):
     def Load_daySfc(self, var, DTime):
         Var  = self.dvar[var]
         return self.load_day(Var, DTime)
+
+    def Load_mon(self, var, Year, Mon):
+        Var  = self.dvar[var]
+        return self.load_mon(Var, Year, Mon)
 
     def Load_const(self, var):
         Var  = self.dvar[var]
