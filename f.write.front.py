@@ -1,40 +1,51 @@
 from numpy import *
-from datetime import datetime
+from datetime import datetime, timedelta
+import config_func
+import util
 import Front
-import detect_func
-import calendar
+#-----------------------
+#prj     = "JRA55"
+#model   = prj
+#run     = ""
+#res     = "bn"
+#noleap  = False
 
+prj     = "HAPPI"
+model   = "MIROC5"
+run     = "C20-ALL-001"
+res     = "128x256"
+noleap  = True
 
-model  = "JRA55"
-res    = "bn"
-iYear  = 2015
-#eYear  = 2010
-eYear  = 2015
-lYear  = range(iYear, eYear+1)
-lMon   = range(1,12+1)
-lHour  = [0,6,12,18]
-#lHour  = [0]
+iDTime = datetime(2006,1,1,6)
+eDTime = datetime(2006,1,31,18)
+dDTime = timedelta(hours=6)
 
-F  = Front.Front(model=model, res=res)
+ret_lDTime = {False: util.ret_lDTime
+             ,True : util.ret_lDTime_noleap
+             }[noleap]
 
-for Year in lYear:
-  for Mon in lMon:
-    iDay  = 1
-    eDay  = calendar.monthrange(Year, Mon)[1]
-    for Day, Hour in [[Day,Hour] for Day in range(iDay, eDay+1) for Hour in lHour]:
-      DTime    = datetime(Year,Mon,Day,Hour)
-      oDir_t, oPath_t = F.path_finloc(DTime, tq="t")
-      oDir_q, oPath_q = F.path_finloc(DTime, tq="q")
+lDTime   = ret_lDTime(iDTime, eDTime, dDTime)
 
-      loc_t  = F.mk_tfront(DTime)
-      loc_q  = F.mk_qfront(DTime)
+cfg = config_func.config_func(prj, model, run)
+cfg["prj"]  = prj
+cfg["model"]= model
+cfg["run"]  = run
+cfg["res"]  = res
+F           = Front.Front(cfg=cfg)
 
-      detect_func.mk_dir(oDir_t)
-      detect_func.mk_dir(oDir_q)
+ltq = ["t"]
+for tq in ltq:
 
-      loc_t.tofile(oPath_t)
-      loc_q.tofile(oPath_q)
-      print oPath_t
+    mk_front = {"t": F.mk_tfront
+               ,"q": F.mk_qfront
+               }[tq]
+
+    for DTime in lDTime:
+        oDir, oPath = F.path_finloc(DTime, tq=tq)
+        loc  = mk_front(DTime)
+        util.mk_dir(oDir)
+        loc.tofile(oPath)
+        print oPath
 
 
 

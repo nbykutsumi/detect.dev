@@ -1,43 +1,59 @@
 from numpy import *
-from datetime import datetime
+from datetime import datetime, timedelta
+import util
+import config_func
 import Front
-import detect_func
-import calendar
 import ConstMask
 
-model  = "JRA55"
-res    = "bn"
-#iYear  = 2015
-iYear  = 2010
-eYear  = 2015
-lYear  = range(iYear, eYear+1)
-lMon   = range(1,12+1)
-lHour  = [0,6,12,18]
-#lHour  = [0]
+#prj     = "JRA55"
+#model   = prj
+#run     = ""
+#res     = "bn"
+#noleap  = False
+
+prj     = "HAPPI"
+model   = "MIROC5"
+run     = "C20-ALL-001"
+res     = "128x256"
+noleap  = True
+
+#ltq    = ["t","q"]
+ltq    = ["t"]
+miss  = -9999.0
+
+dvar  = {"t":"ta", "q":"q"}
+
+iDTime = datetime(2006,1,1,6)
+eDTime = datetime(2006,1,31,18)
+dDTime = timedelta(hours=6)
+
+lDTime = {False: util.ret_lDTime
+         ,True : util.ret_lDTime_noleap
+         }[noleap]( iDTime, eDTime, dDTime )
+
+cfg     = config_func.config_func(prj, model, run)
+cfg["prj"  ] = prj
+cfg["model"] = model
+cfg["run"  ] = run
+cfg["res"  ] = res
+
 ConM    = ConstMask.Const(model=model, res=res)
 radkmt  = ConM.dictRadkm["front.t"]
 radkmq  = ConM.dictRadkm["front.q"]
 
-F  = Front.Front(model=model, res=res)
+F  = Front.Front(cfg=cfg)
 
-for Year in lYear:
-  for Mon in lMon:
-    iDay  = 1
-    eDay  = calendar.monthrange(Year, Mon)[1]
-    for Day, Hour in [[Day,Hour] for Day in range(iDay, eDay+1) for Hour in lHour]:
-      DTime    = datetime(Year,Mon,Day,Hour)
-      oDir_t, oPath_t = F.path_mask(DTime, tq="t", radkm=radkmt)
-      oDir_q, oPath_q = F.path_mask(DTime, tq="q", radkm=radkmq)
+for tq in ltq:
+    func_mkMask = {"t": F.mkMask_tfront
+                  ,"q": F.mkMask_qfront
+                  }[tq]
 
-      mask_t  = F.mkMask_tfront(DTime)
-      mask_q  = F.mkMask_qfront(DTime)
-
-      detect_func.mk_dir(oDir_t)
-      detect_func.mk_dir(oDir_q)
-
-      mask_t.tofile(oPath_t)
-      mask_q.tofile(oPath_q)
-      print oPath_t
-
-
-
+    for DTime in lDTime:
+        oDir, oPath = F.path_mask(DTime, tq=tq, radkm=radkmt)
+        a2dat       = func_mkMask(DTime)
+        util.mk_dir(oDir)
+        a2dat.tofile(oPath)
+        print oPath
+  
+  
+  

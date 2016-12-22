@@ -27,6 +27,15 @@ class Const(object):
       self.thM2q = 1.2*1.0e-3   # temporary 
       self.thgrids= 5/1.25
 
+    elif (model,res) == ("MIROC5","128x256"):
+      self.thM1t = 0.30  # K/100km/100km
+#      self.thM2t = 1.4   # K/100km
+      self.thM2t = 0.6   # K/100km
+
+      self.thM1q = 2.3*1.0e-4   # temporary 
+      self.thM2q = 0.9*1.0e-3   # temporary 
+      self.thgrids= 5/1.25
+
     else:
       print myname,":check model,var",model,var
       sys.exit()

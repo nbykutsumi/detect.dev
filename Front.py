@@ -17,25 +17,16 @@ def read_txtlist(iname):
 
 
 class Front(object):
-  def __init__(self, model="JRA55", res="bn", miss=-9999.):
+  def __init__(self, cfg, miss=-9999.):
     #----------------
-    hostname = socket.gethostname()
-    if hostname == "well":
-      self.rootDir  = "/media/disk2"
-    if hostname in ["mizu","naam"]:
-      self.rootDir  = "/tank/utsumi"
-    #----------------
+    model = cfg["model"]
+    res   = cfg["res"  ] 
 
     C  = ConstFront.Const(model=model, res=res)
-    ra = Reanalysis.Reanalysis(model=model, res=res)
 
     self.res     = res
-    if (model=="JRA25")&(res=="sa.one"):
-      #self.baseDir = "/media/disk2/out/%s/%s.anl_p"%(model, res)
-      self.baseDir = "%s/out/%s/%s.anl_p"%(self.rootDir, model, res)
-    else:
-      #self.baseDir = "/media/disk2/out/%s/%s"%(model, res)
-      self.baseDir = "%s/out/%s/%s"%(self.rootDir, model, res)
+    self.rootDir = cfg["rootDir"]
+    self.baseDir = cfg["baseDir"]
 
     self.model   = model
     self.res     = res
@@ -57,8 +48,7 @@ class Front(object):
     thorog     = self.thorog
     thgradorog = self.thgradorog
 
-    srcDir     = ra.path_const("topo").srcDir
-    self.maxorogname= os.path.join(srcDir, "maxtopo.0300km.%s"%(res))
+    self.maxorogname= os.path.join(self.baseDir, "const", "maxtopo.0300km.%s"%(res))
     self.a2maxorog  = fromfile(self.maxorogname, float32).reshape(ny,nx)
 
     a2orogmask      = zeros([self.ny, self.nx], float32)*self.miss

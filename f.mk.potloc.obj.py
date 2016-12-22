@@ -1,41 +1,53 @@
-from numpy import *
-#import JRA55
-#import JRA25
-import Reanalysis
+from numpy    import *
+from datetime import datetime, timedelta
+import util
+import config_func
+import IO_Master
 import Front
 import calendar
 import detect_func
 import sys, os
-import datetime
 import ConstFront
 #from dtanl_fsub import *
 from front_fsub import *
 #-----------------------
-#lyear  = range(2010,2014+1)
-#lyear  = range(1980,2012+1)
-#lyear  = range(1990,2009)
-lyear  = [2009]
-lmon   = [1,2,3,4,5,6,7,8,9,10,11,12]
-#iday   = 1
-iday   = 1  # test
-lhour  = [0,6,12,18]
-ltq    = ["t","q"]
-#ltq    = ["t"]
-model  = "JRA55"
-res    = "bn"
-#model  = "JRA25"
-#res    = "bn"
-#res    = "sa.one"
+#prj     = "JRA55"
+#model   = prj
+#run     = ""
+#res     = "bn"
+#noleap  = False
 
-ra     = Reanalysis.Reanalysis(model=model, res=res)
-if   model=="JRA55":
-  dvar   = {"t":"tmp", "q":"spfh"}
+prj     = "HAPPI"
+model   = "MIROC5"
+run     = "C20-ALL-001"
+res     = "128x256"
+noleap  = True
 
-elif (model=="JRA25"):
-  dvar   = {"t":"TMP", "q":"SPFH"}
+#ltq    = ["t","q"]
+ltq    = ["t"]
+miss  = -9999.0
 
+dvar  = {"t":"ta", "q":"q"}
 
-front  = Front.Front(model,res)
+iDTime = datetime(2006,1,1,6)
+eDTime = datetime(2006,1,31,18)
+dDTime = timedelta(hours=6)
+
+ret_lDTime = {False: util.ret_lDTime
+             ,True : util.ret_lDTime_noleap
+             }[noleap]
+
+lDTime   = ret_lDTime(iDTime, eDTime, dDTime)
+
+cfg    = config_func.config_func(prj, model, run)
+iom    = IO_Master.IO_Master(prj, model, run, res)
+
+cfg["prj"]   = prj
+cfg["model"] = model
+cfg["run"]   = run
+cfg["res"]   = res
+
+front  = Front.Front(cfg, miss=miss)
 ConstF = ConstFront.Const(model=model, res=res)
 #------------------------
 #local region ------
@@ -43,7 +55,6 @@ plev     = 850   #(hPa)
 cbarflag = "True"
 #-------------------
 
-miss  = -9999.0
 
 #thorog  = ctrack_para.ret_thorog()
 #thgradorog=ctrack_para.ret_thgradorog()
@@ -55,8 +66,8 @@ thgradorog = ConstF.thgradorog
 #************************
 # lat & lon
 #--------------
-a1lat = ra.Lat
-a1lon = ra.Lon
+a1lat = iom.Lat
+a1lon = iom.Lon
 #*************************
 # front locator :contour
 #---------------
@@ -81,27 +92,21 @@ def mk_front_loc_contour(a2thermo, a1lon, a1lat, miss):
 #******************************************************
 ##-- orog & grad orog ----
 
-a2orog  = ra.load_const(var="topo").Data
+a2orog  = iom.load_const(var="topo")
 
 #******************************************************
-for year in lyear:
-  for mon in lmon:
-    eday  = calendar.monthrange(year,mon)[1]
-    for tq in ltq:
-      var = dvar[tq]
-      #-----------
-      for day in range(iday, eday+1):
-        for hour in lhour:
-          DTime   = datetime.datetime(year,mon,day,hour)
-          ##******************************************************
-          a2thermo  = ra.load_6hr(var, DTime, plev).Data
-          a2loc1,a2loc2  = mk_front_loc_contour(a2thermo, a1lon, a1lat, miss)
-          sodir, soname1, soname2   = front.path_potloc(DTime, tq)
-          detect_func.mk_dir(sodir)
-          #------
-          a2loc1.tofile(soname1)
-          a2loc2.tofile(soname2)
-          print soname1
-          print soname2
+for tq in ltq:
+  var = dvar[tq]
+  #-----------
+  for DTime in lDTime:
+    a2thermo  = iom.Load_6hrPlev(var, DTime, plev)
+    a2loc1,a2loc2  = mk_front_loc_contour(a2thermo, a1lon, a1lat, miss)
+    sodir, soname1, soname2   = front.path_potloc(DTime, tq)
+    detect_func.mk_dir(sodir)
+    #------
+    a2loc1.tofile(soname1)
+    a2loc2.tofile(soname2)
+    print soname1
+    print soname2
   
  
