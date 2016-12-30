@@ -23,7 +23,7 @@ tstp    = "day"
 noleap  = True
 
 lvar   = ["ua","va"]
-plev   = 500
+plev   = 850
 
 lhour  = {"6hr": [0,6,12,18]
          ,"day": [0]
