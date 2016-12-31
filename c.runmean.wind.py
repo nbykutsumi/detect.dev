@@ -8,30 +8,34 @@ import IO_Master
 import Cyclone
 #******************************************************
 #******************************************************
-#prj     = "JRA55"
-#model   = prj
-#run     = ""
-#res     = "bn"
-#tstp    = "6hr"
-#noleap  = False
+prj     = "JRA55"
+model   = "__"
+run     = "__"
+res     = "145x288"
+tstp    = "6hr"
+noleap  = False
 
-prj     = "HAPPI"
-model   = "MIROC5"
-run     = "C20-ALL-001"
-res     = "128x256"
-tstp    = "day"
-noleap  = True
+#prj     = "HAPPI"
+#model   = "MIROC5"
+#run     = "C20-ALL-001"
+#res     = "128x256"
+#tstp    = "day"
+#noleap  = True
 
 lvar   = ["ua","va"]
-plev   = 850
+plev   = 500
 
 lhour  = {"6hr": [0,6,12,18]
          ,"day": [0]
          }[tstp]
 
-iDTime = datetime(2006,1,1,6)
-#eDTime = datetime(2006,1,2,18)
-eDTime = datetime(2006,12,31,18)
+#iDTime = datetime(2006,1,1,6)
+#eDTime = datetime(2006,12,31,18)
+#iDTime = datetime(2003,12,1,0)
+#eDTime = datetime(2005,1,31,18)
+iDTime = datetime(2004,1,1,0)
+eDTime = datetime(2004,1,31,18)
+
 dDTime = timedelta(days=1)
 
 ret_lDTime = {False: util.ret_lDTime
@@ -53,12 +57,12 @@ cy     = Cyclone.Cyclone(cfg)
 nx     = iom.nx
 ny     = iom.ny
 
-dw         = 7
+#dw         = 7
+dw         = 3
 ldaydelta  = range(-dw, dw+1)
 
-Load_Var = {"6hr": iom.Load_6hrPlev
-           ,"day": iom.Load_dayPlev
-           }[tstp]
+if   tstp=="6hr": Load_Var = iom.Load_6hrPlev
+elif tstp=="day": Load_Var = iom.Load_dayPlev
 #####################################################
 # Function
 #####################################################

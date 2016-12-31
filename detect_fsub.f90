@@ -326,6 +326,96 @@ END SUBROUTINE calc_tcvar
 
 
 !*****************************************************************
+SUBROUTINE mk_a2rvort(a2u, a2v, a1lon, a1lat, miss&
+                        &, nx, ny, a2rvort)
+!--------------
+! For global data.
+! This program does not calculate rvort at arctic and antarctic.
+!--------------
+implicit none
+integer                              nx, ny
+!---- in ------
+real,dimension(nx,ny)             :: a2u, a2v
+!f2py intent(in)                     a2u, a2v
+real,dimension(nx)                :: a1lon
+!f2py intent(in)                     a1lon
+real,dimension(ny)                :: a1lat
+!f2py intent(in)                     a1lat
+real                                 miss
+!f2py intent(in)                     miss
+!---- out -----
+real,dimension(nx,ny)             :: a2rvort
+!f2py intent(out)                    a2rvort
+!---- para ----
+integer,parameter                 :: miss_int  = -9999
+!---- calc ----
+integer                              ix, iy
+real                                 rvort
+real                                 lat 
+real                                 dns, dew
+real                                 us, un, vw, ve
+
+!--- init ------
+a2rvort   = miss
+!---------------
+do iy = 2,ny-1  ! Except Arctic and Antarctic points
+  lat = a1lat(iy)
+  dns = hubeny_real(a1lat(iy-1), 0.0, a1lat(iy+1), 0.0)
+  dew = hubeny_real(a1lat(iy), a1lon(1), a1lat(iy), a1lon(3))
+  !-----------------------------
+  ! ix = 1 or ix = nx
+  !-----------------------------
+  do ix = 1,nx,nx-1
+    if (ix.eq.1) then
+      us  = a2u(ix, iy-1)
+      un  = a2u(ix, iy+1)
+      vw  = a2v(nx, iy)
+      ve  = a2v(2,  iy)
+    else
+      us  = a2u(ix, iy-1)
+      un  = a2u(ix, iy+1)
+      vw  = a2v(nx-1, iy)
+      ve  = a2v(1,  iy)
+    end if
+
+    if ( (us.eq.miss).or.(un.eq.miss).or.(vw.eq.miss).or.(ve.eq.miss) )then
+      rvort = miss
+    else
+      rvort  =  (ve - vw)/(dew) - (un - us)/(dns) 
+      !if (isnan(rvort))then
+      !  rvort = miss
+      !end if
+    end if
+    a2rvort(ix,iy) = rvort
+  end do
+  !-----------------------------
+  ! ix = 2 to nx-1
+  !-----------------------------
+  do ix = 2,nx-1
+    !-- relative vorticity @ low level ---
+    us  = a2u(ix, iy-1)
+    un  = a2u(ix, iy+1)
+    vw  = a2v(ix-1, iy)
+    ve  = a2v(ix+1, iy)
+    !-
+    if ( (us.eq.miss).or.(un.eq.miss).or.(vw.eq.miss).or.(ve.eq.miss) )then
+      rvort = miss
+    else
+      rvort  =  (ve - vw)/(dew) - (un - us)/(dns) 
+
+      !if (isnan(rvort))then
+      !  rvort = miss
+      !end if
+
+    end if
+    !-
+    a2rvort(ix,iy)  = rvort
+  end do
+end do
+
+!--------------
+END SUBROUTINE mk_a2rvort
+!*****************************************************************
 SUBROUTINE findcyclone_bn(a2psl, a1lat, a1lon, miss_in, miss_out, nx, ny, a2pgrad)
   implicit none
   !** for input ---------------------------------------------

@@ -11,17 +11,21 @@ class IO_Jra55(Jra55):
                ,"va"   :"vgrd"
                ,"slp"  :"PRMSL"
                ,"prcp" :"APCP"
+               ,"topo" :"topo"
                }
 
-    def load_6hrPlev(self, var, DTime, plev):
+    def Load_6hrPlev(self, var, DTime, plev):
         Var  = self.dvar[var]
         return self.load_6hr(Var, DTime, plev)
 
-    def load_6hrSfc(self, var, DTime):
+    def Load_6hrSfc(self, var, DTime):
         Var  = self.dvar[var]
         return self.load_6hr(Var, DTime)
 
-    def load_monSfc(self, var, Year, Mon):
+    def Load_monSfc(self, var, Year, Mon):
         Var  = self.dvar[var]
         return self.load_mon(Var, Year, Mon)
 
+    def Load_const(self, var):
+        Var  = self.dvar[var]
+        return self.load_const(Var)

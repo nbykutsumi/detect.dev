@@ -32,18 +32,16 @@ singleday = False
 unitdist  = 10.0 # km / hour
 #unitdist  = 150.0 # km / hour  # test
 #----------------
-#iDTime = datetime(2004,1,8,0)
-#eDTime = datetime(2004,1,14,18)
-iDTime = datetime(2004,1,1,0)
-eDTime = datetime(2004,1,31,18)
+iDTime = datetime(2004,1,8,0)
+eDTime = datetime(2004,1,14,18)
 dDTime = timedelta(hours=6)
 lDTime = util.ret_lDTime(iDTime, eDTime, dDTime)
 
 thdura = 48
 #thdura = 72
 #region = "GLOB"
-#region = "JPN"
-region = "CAM"
+region = "JPN"
+#region = "NAF"
 
 iom    = IO_Master.IO_Master(prj, model, run, res)
 bst    = BestTrackTC.BestTrack("IBTrACS")
@@ -96,12 +94,6 @@ elif region == "NAF":
   urlat   = 40.
   lllon   = 0.
   urlon   = 55.
-elif region == "CAM":
-  lllat   = 0.
-  urlat   = 30.
-  lllon   = 360.-110.
-  urlon   = 360.-70.
-
 
 
 #*************************************
@@ -120,7 +112,7 @@ def mk_dexcloc(year,mon):
     print siname
   #*******
   stepflag = 0
-  dtcloc   = {}
+  dcloc    = {}
   nlist    = len(da1["dura"])
   for i in range(nlist):
     dura        = da1["dura"     ][i]
@@ -161,12 +153,12 @@ def mk_dexcloc(year,mon):
     ix, iy            = detect_func.fortpos2pyxy( nowpos, nx, -9999)
 
     #---- dictionary --
-    if dtcloc.has_key((dayt,hourt)):
-      dtcloc[dayt,hourt].append([ix,iy,rvort])
+    if dcloc.has_key((dayt,hourt)):
+      dcloc[dayt,hourt].append([ix,iy,rvort])
     else:
-      dtcloc[dayt,hourt] = [[ix,iy, rvort]]
+      dcloc[dayt,hourt] = [[ix,iy, rvort]]
   #------------------
-  return dtcloc
+  return dcloc
 
 #************************************
 
@@ -175,11 +167,12 @@ def mk_dexcloc(year,mon):
 #dpgradrange  = {0:[thpgrad, 1.e+10]}
 #lclass  = dpgradrange.keys()[2:]
 
-exrvort = cy.exrvort
+#exrvort = cy.exrvort
+exrvort = 3.7e-5   # test
 drvortrange  = {0:[exrvort, 1.e+10]
               , 1:[exrvort*0.5, exrvort]
-              , 2:[exrvort, exrvort*1.5]
-              , 3:[exrvort*1.5, 1.e+10]
+              , 2:[exrvort, exrvort*2.0]
+              , 3:[exrvort*2.0, 1.e+10]
                }
 lclass  = drvortrange.keys()
 nclass  = len(lclass)
@@ -282,6 +275,21 @@ figmap   = plt.figure()
 axmap    = figmap.add_axes([0.1, 0.1, 0.8, 0.8])
 M        = Basemap( resolution="l", llcrnrlat=lllat, llcrnrlon=lllon, urcrnrlat=urlat, urcrnrlon=urlon, ax=axmap)
 
+
+a2out = ones([ny,nx],float32)
+for DTime in lDTime:
+  day = DTime.day
+  hour= DTime.hour
+  lxyz = dexcloc[(day,hour)]
+  for (x,y,z) in lxyz:
+    lon = a1lon[x]
+    lat = a1lat[y]
+    if ((lllon<lon)&(lon<urlon)&(lllat<lat)&(lat<urlat)):
+      print x,y, "***",lon, lat
+      M.plot( lon, lat, "o")
+
+
+
 #-- draw cyclone tracks ------
 itemp = 1
 for iclass in lclass[1:]:
@@ -368,10 +376,11 @@ axmap.set_title(stitle, fontsize=10.0)
 #-- save --------------------
 print "save"
 #sodir   = "/media/disk2/out/cyclone/exc.track.w.bsttc.JRA55/%s"%(region)
-sodir   = "/home/utsumi/temp"
+#sodir   = "/home/utsumi/temp"
+sodir  = "."
 util.mk_dir(sodir)
 #soname  = sodir + "/exc.track.w.bsttc.%s.%04d.%02d.%02d-%02d.%02dh.png"%(model, year,mon, iday, eday, thdura)
-soname  = sodir + "/exc.track.png"
+soname  = sodir + "/test.png"
 plt.savefig(soname)
 plt.clf()
 print soname

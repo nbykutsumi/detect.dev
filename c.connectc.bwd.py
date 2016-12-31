@@ -9,20 +9,23 @@ import ConstCyclone
 import calendar
 import os, sys
 ##***************************
-#prj     = "JRA55"
-#model   = prj
-#run     = ""
-#res     = "bn"
-#noleap  = False
+prj     = "JRA55"
+model   = "__"
+run     = "__"
+res     = "145x288"
+noleap  = False
 
-prj     = "HAPPI"
-model   = "MIROC5"
-run     = "C20-ALL-001"
-res     = "128x256"
-noleap  = True
+#prj     = "HAPPI"
+#model   = "MIROC5"
+#run     = "C20-ALL-001"
+#res     = "128x256"
+#noleap  = True
 
-iDTime = datetime(2006,1,1,6)
-eDTime = datetime(2006,1,31,18)
+#iDTime = datetime(2003,12,1,0)
+#eDTime = datetime(2005,1,31,18)
+iDTime = datetime(2004,1,1,0)
+eDTime = datetime(2004,1,31,18)
+
 dDTime = timedelta(hours=6)
 
 ret_lDTime = {False: util.ret_lDTime

@@ -6,5 +6,6 @@ class Const(object):
 
     # "JRA55","bn"
     self.thpgrad = 324.0      # Pa/1000km
-    self.thrvort = 3.5*1.0e-5 # s-1
+    self.exrvort = 3.7*1.0e-5 # s-1 tuned@2016/12/31
+    self.tcrvort = 3.5*1.0e-5 # s-1
     self.thwcore = 0.0        # K

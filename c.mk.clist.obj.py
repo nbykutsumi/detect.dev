@@ -9,20 +9,24 @@ import calendar
 import detect_func
 import collections
 #-----------------------------------------
-#prj     = "JRA55"
-#model   = prj
-#run     = ""
-#res     = "bn"
-#noleap  = False
+prj     = "JRA55"
+model   = "__"
+run     = "__"
+res     = "145x288"
+noleap  = False
 
-prj     = "HAPPI"
-model   = "MIROC5"
-run     = "C20-ALL-001"
-res     = "128x256"
-noleap  = True
+#prj     = "HAPPI"
+#model   = "MIROC5"
+#run     = "C20-ALL-001"
+#res     = "128x256"
+#noleap  = True
 
-iDTime = datetime(2006,1,1,6)
-eDTime = datetime(2006,1,31,18)
+#iDTime = datetime(2006,1,1,6)
+#eDTime = datetime(2006,1,31,18)
+iDTime = datetime(2004,1,1,0)
+eDTime = datetime(2004,1,31,18)
+
+
 dDTime = timedelta(hours=6)
 
 ret_lDTime = {False: util.ret_lDTime
@@ -92,11 +96,12 @@ for idt, DTime in enumerate(lDTime):
     a2num  = zeros([ny,nx],float32).reshape(ny,nx)
     #--------------
     #lstype  = ["rvort","dtlow","dtmid","dtup","wmeanlow","wmeanup","wmaxlow","dura","pgrad","sst","lat","lon","ipos","idate","nowpos","time","prepos","nextpos"]
-    lstype_ex  = ["dura","pgrad","lat","lon","ipos","epos","idate","nowpos","time","prepos","nextpos"]
-    lstype_tc  = ["rvort","dtlow","dtmid","dtup","wmeanlow","wmeanup","wmaxlow","sst"]
+    lstype_ex  = ["dura","pgrad","vortlw","lat","lon","ipos","epos","idate","nowpos","time","prepos","nextpos"]
+    #lstype_tc  = ["rvort","dtlow","dtmid","dtup","wmeanlow","wmeanup","wmaxlow","sst"]
     da1     = {}
 
-    for stype in lstype_ex + lstype_tc:
+    #for stype in lstype_ex + lstype_tc:
+    for stype in lstype_ex:
       #if stype in ["dura","ipos","idate","nowpos","time","prepos","nextpos"]:
       #  da1[stype] = array([],int32  )
       #else:
@@ -104,6 +109,7 @@ for idt, DTime in enumerate(lDTime):
       da1[stype] = collections.deque([])
   #-------------
   a2pgrad         =cy.load_a2dat("pgrad"  ,DTime) 
+  a2vortlw        =cy.load_a2dat("vortlw" ,DTime) 
   a2dura          =cy.load_a2dat("dura"   ,DTime) 
   a2ipos          =cy.load_a2dat("ipos"   ,DTime) 
   a2epos          =cy.load_a2dat("epos"   ,DTime) 
@@ -117,6 +123,7 @@ for idt, DTime in enumerate(lDTime):
   a1dura_tmp      = array(a1dura_tmp, int32)
 
   a1pgrad_tmp     = ma.masked_where( a2pgrad==miss, a2pgrad    ).compressed()
+  a1vortlw_tmp    = ma.masked_where( a2pgrad==miss, a2vortlw   ).compressed()
   a1lat_tmp       = ma.masked_where( a2pgrad==miss, a2lat      ).compressed()
   a1lon_tmp       = ma.masked_where( a2pgrad==miss, a2lon      ).compressed()
   a1ipos_tmp      = ma.masked_where( a2pgrad==miss, a2ipos     ).compressed()
@@ -132,6 +139,7 @@ for idt, DTime in enumerate(lDTime):
   #-----------------
   da1["dura"    ].extend( a1dura_tmp     )
   da1["pgrad"   ].extend( a1pgrad_tmp    )
+  da1["vortlw"  ].extend( a1vortlw_tmp   )
   da1["lat"     ].extend( a1lat_tmp      )
   da1["lon"     ].extend( a1lon_tmp      )
   da1["ipos"    ].extend( a1ipos_tmp     )
@@ -139,7 +147,7 @@ for idt, DTime in enumerate(lDTime):
   da1["idate"   ].extend( a1idate_tmp    )
   da1["nowpos"  ].extend( a1nowpos_tmp   )
   da1["time"    ].extend( a1time_tmp     )
-  da1["prepos" ].extend( a1prepos_tmp  )
+  da1["prepos" ].extend( a1prepos_tmp    )
   da1["nextpos" ].extend( a1nextpos_tmp  )
 
 
