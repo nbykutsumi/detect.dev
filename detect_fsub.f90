@@ -143,7 +143,7 @@ SUBROUTINE calc_tcvar(a2pgrad, a2tlow, a2tmid, a2tup&
                         &, a2ulow, a2uup, a2vlow, a2vup&
                         &, a1lon,  a1lat&
                         &, miss&
-                        &, nx, ny, a2rvort, a2dtlow, a2dtmid, a2dtup, a2wmeanlow, a2wmeanup)
+                        &, nx, ny, a2dtlow, a2dtmid, a2dtup, a2wmeanlow, a2wmeanup)
 
 implicit none
 !--------------
@@ -158,29 +158,28 @@ real,dimension(ny)                :: a1lat
 real                                 miss
 !f2py intent(in)                     miss
 !---- out -----
-real,dimension(nx,ny)             :: a2rvort, a2dtlow, a2dtmid, a2dtup, a2wmeanlow, a2wmeanup
-!f2py intent(out)                    a2rvort, a2dtlow, a2dtmid, a2dtup, a2wmeanlow, a2wmeanup
+real,dimension(nx,ny)             :: a2dtlow, a2dtmid, a2dtup, a2wmeanlow, a2wmeanup
+!f2py intent(out)                    a2dtlow, a2dtmid, a2dtup, a2wmeanlow, a2wmeanup
 !---- para ----
 integer,parameter                 :: miss_int  = -9999
 !---- calc ----
 integer                              itemp
 integer                              ix, iy
-integer                              ixw,ixe,ixs,ixn
-integer                              iyw,iye,iys,iyn
+!integer                              ixw,ixe,ixs,ixn
+!integer                              iyw,iye,iys,iyn
 integer,dimension(8)              :: a1surrx, a1surry
 integer                              ixt, iyt
 integer                              icount
 real                                 pgrad
-real                                 rvort
 real                                 lat 
 real                                 dns, dew
-real                                 us, un, vw, ve
+!real                                 us, un, vw, ve
 real                                 wmeanlow, wmeanup
 real                                 tmeanlow, tmeanmid, tmeanup
 real                                 dtlow, dtmid, dtup
 
 !--- init ------
-a2rvort   = miss
+!a2rvort   = miss
 a2dtlow   = miss
 a2dtmid   = miss
 a2dtup    = miss
@@ -209,29 +208,29 @@ do iy = 1,ny
 !    call solvelife_point(life, miss_int, dura, pgmax)
 !    a2dura(ix,iy)  = real(dura)
 
-    !-- relative vorticity @ low level ---
-    call ixy2iixy(nx, ny, ix, iy+1, ixn, iyn)
-    call ixy2iixy(nx, ny, ix, iy-1, ixs, iys)
-    call ixy2iixy(nx, ny, ix-1, iy, ixw, iyw)
-    call ixy2iixy(nx, ny, ix+1, iy, ixe, iye)
-    !---
-    us  = a2ulow(ixs, iys)
-    un  = a2ulow(ixn, iyn)
-    vw  = a2vlow(ixw, iyw)
-    ve  = a2vlow(ixe, iye)
-    !-
-    if ( (us.eq.miss).or.(un.eq.miss).or.(vw.eq.miss).or.(ve.eq.miss) )then
-      rvort = miss
-    else
-      rvort  =  (ve - vw)/(dew) - (un - us)/(dns) 
+    !!-- relative vorticity @ low level ---
+    !call ixy2iixy(nx, ny, ix, iy+1, ixn, iyn)
+    !call ixy2iixy(nx, ny, ix, iy-1, ixs, iys)
+    !call ixy2iixy(nx, ny, ix-1, iy, ixw, iyw)
+    !call ixy2iixy(nx, ny, ix+1, iy, ixe, iye)
+    !!---
+    !us  = a2ulow(ixs, iys)
+    !un  = a2ulow(ixn, iyn)
+    !vw  = a2vlow(ixw, iyw)
+    !ve  = a2vlow(ixe, iye)
+    !!-
+    !if ( (us.eq.miss).or.(un.eq.miss).or.(vw.eq.miss).or.(ve.eq.miss) )then
+    !  rvort = miss
+    !else
+    !  rvort  =  (ve - vw)/(dew) - (un - us)/(dns) 
 
-      if (isnan(rvort))then
-        rvort = miss
-      end if
+    !  if (isnan(rvort))then
+    !    rvort = miss
+    !  end if
 
-    end if
-    !-
-    a2rvort(ix,iy)  = rvort
+    !end if
+    !!-
+    !a2rvort(ix,iy)  = rvort
 
     !-- surrounding 8 grids ---
 
@@ -311,7 +310,6 @@ do iy = 1,ny
     
     !-- check missing value at center --
     if (a2tlow(ix,iy) .eq. miss)then
-      a2rvort(ix,iy)    = miss
       a2dtlow(ix,iy)    = miss
       a2dtmid(ix,iy)    = miss
       a2wmeanlow(ix,iy) = miss
@@ -323,6 +321,190 @@ end do
 !--------------
 END SUBROUTINE calc_tcvar
 !*****************************************************************
+!SUBROUTINE calc_tcvar_old(a2pgrad, a2tlow, a2tmid, a2tup&
+!                        &, a2ulow, a2uup, a2vlow, a2vup&
+!                        &, a1lon,  a1lat&
+!                        &, miss&
+!                        &, nx, ny, a2rvort, a2dtlow, a2dtmid, a2dtup, a2wmeanlow, a2wmeanup)
+!
+!implicit none
+!!--------------
+!integer                              nx, ny
+!!---- in ------
+!real,dimension(nx,ny)             :: a2pgrad, a2tlow, a2tmid, a2tup, a2ulow, a2uup, a2vlow, a2vup
+!!f2py intent(in)                     a2pgrad, a2tlow, a2tmid, a2tup, a2ulow, a2uup, a2vlow, a2vup
+!real,dimension(nx)                :: a1lon
+!!f2py intent(in)                     a1lon
+!real,dimension(ny)                :: a1lat
+!!f2py intent(in)                     a1lat
+!real                                 miss
+!!f2py intent(in)                     miss
+!!---- out -----
+!real,dimension(nx,ny)             :: a2rvort, a2dtlow, a2dtmid, a2dtup, a2wmeanlow, a2wmeanup
+!!f2py intent(out)                    a2rvort, a2dtlow, a2dtmid, a2dtup, a2wmeanlow, a2wmeanup
+!!---- para ----
+!integer,parameter                 :: miss_int  = -9999
+!!---- calc ----
+!integer                              itemp
+!integer                              ix, iy
+!integer                              ixw,ixe,ixs,ixn
+!integer                              iyw,iye,iys,iyn
+!integer,dimension(8)              :: a1surrx, a1surry
+!integer                              ixt, iyt
+!integer                              icount
+!real                                 pgrad
+!real                                 rvort
+!real                                 lat 
+!real                                 dns, dew
+!real                                 us, un, vw, ve
+!real                                 wmeanlow, wmeanup
+!real                                 tmeanlow, tmeanmid, tmeanup
+!real                                 dtlow, dtmid, dtup
+!
+!!--- init ------
+!a2rvort   = miss
+!a2dtlow   = miss
+!a2dtmid   = miss
+!a2dtup    = miss
+!a2wmeanlow= miss
+!a2wmeanup = miss
+!!---------------
+!do iy = 1,ny
+!  lat = a1lat(iy)
+!
+!  if ((iy.eq.1).or.(iy.eq.ny))then
+!    dns = 2.0* hubeny_real(a1lat(1), 0.0, a1lat(2), 0.0)
+!    dew = hubeny_real(a1lat(iy), a1lon(1), a1lat(iy), a1lon(3))
+!  else
+!    dns = hubeny_real(a1lat(iy-1), 0.0, a1lat(iy+1), 0.0)
+!    dew = hubeny_real(a1lat(iy), a1lon(1), a1lat(iy), a1lon(3))
+!  end if
+!  !-----------------------------
+!  do ix = 1,nx
+!    !-- pgrad ----------
+!    pgrad  = a2pgrad(ix,iy)
+!    if (pgrad .eq. miss)then
+!      cycle
+!    end if
+!!    !-- dura -----------
+!!    life   = a2life(ix,iy)
+!!    call solvelife_point(life, miss_int, dura, pgmax)
+!!    a2dura(ix,iy)  = real(dura)
+!
+!    !-- relative vorticity @ low level ---
+!    call ixy2iixy(nx, ny, ix, iy+1, ixn, iyn)
+!    call ixy2iixy(nx, ny, ix, iy-1, ixs, iys)
+!    call ixy2iixy(nx, ny, ix-1, iy, ixw, iyw)
+!    call ixy2iixy(nx, ny, ix+1, iy, ixe, iye)
+!    !---
+!    us  = a2ulow(ixs, iys)
+!    un  = a2ulow(ixn, iyn)
+!    vw  = a2vlow(ixw, iyw)
+!    ve  = a2vlow(ixe, iye)
+!    !-
+!    if ( (us.eq.miss).or.(un.eq.miss).or.(vw.eq.miss).or.(ve.eq.miss) )then
+!      rvort = miss
+!    else
+!      rvort  =  (ve - vw)/(dew) - (un - us)/(dns) 
+!
+!      if (isnan(rvort))then
+!        rvort = miss
+!      end if
+!
+!    end if
+!    !-
+!    a2rvort(ix,iy)  = rvort
+!
+!    !-- surrounding 8 grids ---
+!
+!    CALL mk_8gridsxy(ix, iy, nx, ny, a1surrx, a1surry)
+!
+!
+!    !-- vmean -----------------
+!    wmeanlow  = 0.0
+!    wmeanup   = 0.0
+!    icount   = 0
+!
+!    do itemp = 1,8 
+!      ixt = a1surrx(itemp)
+!      iyt = a1surry(itemp)
+!
+!      !print *,lat,"loop",ixt,iyt,itemp
+!      if (a2ulow(ixt, iyt).eq. miss)then
+!        cycle
+!      else if ( (isnan(a2ulow(ixt,iyt))).or.( isnan(a2ulow(ixt,iyt))))then
+!        cycle 
+!      else
+!        wmeanlow   = wmeanlow + sqrt(a2ulow(ixt,iyt)**2 + a2vlow(ixt,iyt)**2)
+!        wmeanup    = wmeanup  + sqrt(a2uup( ixt,iyt)**2 + a2vup( ixt,iyt)**2)
+!        icount = icount + 1
+!      end if
+!    end do
+!    !-
+!    if (icount .eq.0)then
+!      wmeanlow    = miss
+!      wmeanup     = miss
+!    else
+!      wmeanlow    = wmeanlow / real(icount)
+!      wmeanup     = wmeanup  / real(icount)
+!    end if
+!    a2wmeanlow(ix,iy)  = wmeanlow
+!    a2wmeanup (ix,iy)  = wmeanup
+!
+!    !-- temperature anomaly -----
+!    tmeanlow  = 0.0
+!    tmeanmid  = 0.0
+!    tmeanup   = 0.0
+!    icount   = 0
+!
+!    do itemp = 1,8 
+!      ixt = a1surrx(itemp)
+!      iyt = a1surry(itemp)
+!
+!      !print *,lat,"loop",ixt,iyt,itemp
+!      if (a2tlow(ixt, iyt).eq. miss)then
+!        cycle
+!      else if ( (isnan(a2tlow(ixt,iyt))).or.(isnan(a2tmid(ixt,iyt))).or.( isnan(a2tlow(ixt,iyt))))then
+!        cycle 
+!      else
+!        tmeanlow   = tmeanlow + a2tlow(ixt, iyt)
+!        tmeanmid   = tmeanmid + a2tmid(ixt, iyt)
+!        tmeanup    = tmeanup  + a2tup(ixt, iyt)
+!        icount = icount + 1
+!      end if
+!    end do
+!    !-
+!    if (icount .eq.0)then
+!      dtlow     = miss
+!      dtmid     = miss
+!      dtup      = miss
+!    else
+!      tmeanlow  = tmeanlow / real(icount)
+!      tmeanmid  = tmeanmid / real(icount)
+!      tmeanup   = tmeanup  / real(icount)
+!      !
+!      dtlow     = a2tlow(ix,iy) - tmeanlow  
+!      dtmid     = a2tmid(ix,iy) - tmeanmid
+!      dtup      = a2tup(ix,iy)  - tmeanup  
+!    end if
+!    a2dtlow(ix,iy)     = dtlow
+!    a2dtmid(ix,iy)     = dtmid
+!    a2dtup (ix,iy)     = dtup
+!    
+!    !-- check missing value at center --
+!    if (a2tlow(ix,iy) .eq. miss)then
+!      a2rvort(ix,iy)    = miss
+!      a2dtlow(ix,iy)    = miss
+!      a2dtmid(ix,iy)    = miss
+!      a2wmeanlow(ix,iy) = miss
+!    end if
+!    !-----------------------------------
+!  end do
+!end do
+!
+!!--------------
+!END SUBROUTINE calc_tcvar_old
+!!*****************************************************************
 
 
 !*****************************************************************
@@ -524,7 +706,236 @@ end do
 RETURN
 END SUBROUTINE findcyclone_bn
 
-!!*****************************************************************
+!!**************************************************************
+SUBROUTINE connectc_vort_inertia(&
+        &  a2vortlw0, a2vortlw1, a2ua0, a2va0&
+        &, a2prepos0, a2ipos0, a2idate0, a2age0&
+        &, a1lon, a1lat, thrvort, thdist, hinc, miss_dbl, miss_int&
+        &, year1, mon1, day1, hour1&
+        &, a2prepos1, a2ipos1, a2idate1, a2age1&
+        &, nx, ny)
+  implicit none
+  !**************************************
+  ! a2prepos returns nx*(iy -1) + ix
+  ! where ix = 1,2, .. nx,   iy = 1, 2, .. ny
+  ! NOT ix = 0, 1, .. nx-1,  iy = 0, 1, .. ny
+
+  !**************************************
+  !** for input
+  !**************************************
+  integer                                          nx, ny
+  double precision,dimension(nx, ny)            :: a2vortlw0, a2vortlw1, a2ua0, a2va0
+!f2py intent(in)                                   a2vortlw0, a2vortlw1, a2ua0, a2va0
+  integer,dimension(nx,ny)                      :: a2prepos0, a2ipos0, a2idate0, a2age0
+!f2py intent(in)                                   a2prepos0, a2ipos0, a2idate0, a2age0
+  double precision,dimension(ny)                :: a1lat
+!f2py intent(in)                                   a1lat
+  double precision,dimension(nx)                :: a1lon
+!f2py intent(in)                                   a1lon
+  double precision                                 thrvort, thdist
+!f2py intent(in)                                   thrvort, thdist
+  integer                                          hinc
+!f2py intent(in)                                   hinc
+  double precision                                 miss_dbl
+!f2py intent(in)                                   miss_dbl
+  integer                                          miss_int
+!f2py intent(in)                                   miss_int
+  integer                                          year1, mon1, day1, hour1
+!f2py intent(in)                                   year1, mon1, day1, hour1
+  !**************************************
+  !** for output
+  !**************************************
+  integer,dimension(nx, ny)                     :: a2prepos1, a2ipos1, a2idate1, a2age1
+!f2py intent(out)                                  a2prepos1, a2ipos1, a2idate1, a2age1
+  !**************************************
+  !** for calc
+  !**************************************
+  integer                                          ix0, iy0, ix1, iy1, iix1, iiy1, iix, iiy, iix_loop, iiy_loop
+  integer                                          prepos, ixpre, iypre
+  integer                                          dx_inrt, dy_inrt
+  integer                                          dx_wind, dy_wind
+  integer                                          dx, dy
+  integer                                          ngrids, sgrids, xgrids, ygrids
+  double precision                                 lat0, lon0, lat1, lon1
+  double precision                                 vort1
+  double precision                                 ua0, va0
+  double precision                                 londist, latdist
+  double precision                                 dlon
+  double precision                                 iilon, iilat
+  double precision                                 iidist, iivort
+  double precision                                 iidist_temp, iivort_temp
+  integer                                          xx, yy
+  !integer,dimension(nx*ny)                      :: a1x, a1y
+  !integer,dimension(8)                           :: a1surrx, a1suury
+  integer                                          cflag
+  !**************************************
+  !** parameter
+  !**************************************
+  double precision,parameter                    :: speedfactor=0.5d0
+!------------------------------------------------------------
+!dlat  = a1lat(2) - a1lat(1)
+dlon  = a1lon(2) - a1lon(1)
+!************************************************
+! initialize
+!------------------------------------------------
+a2prepos1 = miss_int
+a2ipos1    = miss_int
+a2idate1   = miss_int
+a2age1    = miss_int
+!************************************************
+! search cyclone same as previous timestep
+!------------------------------------------------
+do iy0 = 1, ny
+  do ix0 = 1, nx
+    if ( a2vortlw0(ix0,iy0) .gt. thrvort ) then
+      !-----------------
+      lat0    = a1lat(iy0)
+      lon0    = a1lon(ix0)
+      ua0     = a2ua0(ix0, iy0)
+      va0     = a2va0(ix0, iy0)
+      !-----------------
+      if (ua0.eq.miss_dbl)then
+        ua0 = 0.0d0
+      end if
+      if (va0.eq.miss_dbl)then
+        va0 = 0.0d0
+      end if
+      !****************************************
+      ! Wind Advection
+      !-----------------
+      londist = ua0 * 60d0 * 60d0 * hinc * speedfactor ! [m]
+      latdist = va0 * 60d0 * 60d0 * hinc * speedfactor ! [m]
+!      ix1     = ix0 + longrids_bn(lat0, dlon, londist)
+!      iy1     = iy0 + latgrids_bn(iy0,  a1lat, latdist, ny)
+      dx_wind = longrids_bn(lat0, dlon, londist)
+      dy_wind = latgrids_bn(iy0,  a1lat, latdist, ny)
+
+      !-----------------
+      ! Consider Inertial vector
+      !-----------------
+      prepos  = a2prepos0(ix0,iy0)
+      if (prepos.ne.miss_int) then
+        CALL fortpos2fortxy(prepos, nx, ixpre, iypre)
+        dx_inrt   = ret_dx(ixpre, ix0, nx)
+        dy_inrt   = iy0 - iypre
+        dx        = int(0.5*(dx_inrt + dx_wind))
+        dy        = int(0.5*(dy_inrt + dy_wind))
+      else        
+        dx        = dx_wind
+        dy        = dy_wind
+      end if
+  
+      ix1     = ix0 + dx
+      iy1     = iy0 + dy
+
+      call ixy2iixy(nx, ny, ix1, iy1, iix1, iiy1)
+      ix1     = iix1
+      iy1     = iiy1
+      !****************************************
+      ! search
+      !----------------------------------------
+      ! set range
+      !***********
+      lat1    = a1lat(iy1)
+      lon1    = a1lon(ix1)
+
+      !call gridrange(lat1, dlat, dlon, thdist, ngrids, sgrids, xgrids)
+
+      ngrids  = latgrids_bn(iy1,  a1lat,  thdist, ny)
+      sgrids  = latgrids_bn(iy1,  a1lat, -thdist, ny)
+      xgrids  = longrids_bn(lat1, dlon, thdist)
+
+      if (sgrids .ge. ngrids )then
+        ygrids = sgrids
+      else
+        ygrids = ngrids
+      end if
+      !--
+      !-----------
+      ! search loop
+      !***********
+      iidist = 1.0e+20
+      iivort = 1.0e+20
+      xx     = 0
+      yy     = 0
+      cflag  = 0
+      do iix_loop = ix1 - xgrids, ix1 + xgrids
+        do iiy_loop = iy1 - ygrids, iy1 + ygrids
+          call ixy2iixy(nx, ny, iix_loop, iiy_loop, iix, iiy)
+          !**********************
+          ! DO NOT USE
+          ! TC track will be drastically reduced
+          !!------------------
+          !! skip if the potential cyclone is
+          !! located in the same place as the previous step
+          !!------------------
+          !if ((iix.eq.ix0).and.(iiy.eq.iy0))then
+          !  cycle
+          !end if
+          !!------------------
+          if (a2vortlw1(iix,iiy) .ne. miss_dbl) then
+            iivort_temp  = a2vortlw1(iix,iiy)
+            iilat        = a1lat(iiy)
+            iilon        = a1lon(iix)
+            if (iivort_temp .gt. thrvort) then
+              iidist_temp  = hubeny(lat1, lon1, iilat, iilon)
+              if (iidist_temp .lt. iidist) then
+                cflag        = 1
+                iidist       = iidist_temp
+                iivort       = iivort_temp
+                iilon        = a1lon(iix)
+                iilat        = a1lat(iiy)
+                xx           = iix
+                yy           = iiy
+              else if (iidist_temp .eq. iidist) then
+                if (iivort_temp .gt. iivort) then
+                  cflag        = 1
+                  iidist       = iidist_temp
+                  iivort       = iivort_temp
+                  iilon        = a1lon(iix)
+                  iilat        = a1lat(iiy)
+                  xx           = iix
+                  yy           = iiy
+                end if
+              end if
+            end if
+          end if
+        end do
+      end do
+      !-----
+      if (cflag .eq. 1) then
+        a2prepos1(xx, yy)  = nx * (iy0-1) + ix0
+        a2ipos1(xx,yy)     = a2ipos0(ix0,iy0)
+        a2idate1(xx,yy)    = a2idate0(ix0,iy0)
+        a2age1(xx,yy)      = a2age0(ix0,iy0) + hinc
+      end if
+      !-----------------
+    end if
+  end do
+end do
+!************************************************
+! search new cyclone
+!------------------------------------------------
+do yy = 1, ny
+  do xx = 1, nx
+    if (a2vortlw1(xx,yy) .ne. miss_dbl) then
+      if (a2prepos1(xx,yy) .eq. miss_int) then
+        vort1 = a2vortlw1(xx,yy)
+        if ( vort1 .gt. thrvort )then
+          a2ipos1(xx,yy)  = (yy -1)*nx + xx
+          a2idate1(xx,yy) = year1*10**6 + mon1*10**4 + day1*10**2 + hour1
+          a2age1(xx,yy)  = 0
+        end if
+      end if
+    end if
+  end do
+end do
+!-----
+RETURN
+END SUBROUTINE
+
+
+
 !!*****************************************************************
 SUBROUTINE connectc_bn_nopgmax(&
         &  a2pgrad0, a2pgrad1, a2ua0, a2va0&
@@ -738,16 +1149,16 @@ end do
 RETURN
 END SUBROUTINE
 !!*****************************************************************
-SUBROUTINE connectc_bn(&
+SUBROUTINE connectc_with_pgmax(&
         &  a2pgrad0, a2pgrad1, a2ua0, a2va0&
         &, a2pgmax0, a2ipos0, a2idate0, a2time0&
         &, a1lon, a1lat, thdp, thdist, hinc, miss_dbl, miss_int&
         &, year1, mon1, day1, hour1&
-        &, a2lastpos1, a2pgmax1, a2ipos1, a2idate1, a2time1&
+        &, a2prepos1, a2pgmax1, a2ipos1, a2idate1, a2time1&
         &, nx, ny)
   implicit none  
   !**************************************
-  ! a2lastpos returns nx*(iy -1) + ix
+  ! a2prepos returns nx*(iy -1) + ix
   ! where ix = 1,2, .. nx,   iy = 1, 2, .. ny
   ! NOT ix = 0, 1, .. nx-1,  iy = 0, 1, .. ny
 
@@ -780,8 +1191,8 @@ SUBROUTINE connectc_bn(&
   !**************************************
   double precision,dimension(nx,ny)             :: a2pgmax1
 !f2py intent(out)                                  a2pgmax1
-  integer,dimension(nx, ny)                     :: a2lastpos1, a2ipos1, a2idate1, a2time1
-!f2py intent(out)                                  a2lastpos1, a2ipos1, a2idate1, a2time1
+  integer,dimension(nx, ny)                     :: a2prepos1, a2ipos1, a2idate1, a2time1
+!f2py intent(out)                                  a2prepos1, a2ipos1, a2idate1, a2time1
   !**************************************
   !** for calc 
   !**************************************
@@ -809,7 +1220,7 @@ dlon  = a1lon(2) - a1lon(1)
 !************************************************
 ! initialize 
 !------------------------------------------------
-a2lastpos1 = miss_int
+a2prepos1 = miss_int
 a2pgmax1   = miss_dbl
 a2ipos1    = miss_int
 a2idate1   = miss_int
@@ -927,7 +1338,7 @@ do iy0 = 1, ny
           !--------------
           ! make pgmax
           !--------------
-          a2lastpos1(xx, yy) = nx * (iy0-1) + ix0
+          a2prepos1(xx, yy) = nx * (iy0-1) + ix0
           if ( a2pgmax0(ix0, iy0) .eq. miss_dbl )then
             a2pgmax1(xx,yy)     = a2pgrad1(xx, yy)
           else if ( a2pgrad1(xx, yy) .gt. a2pgmax0(ix0, iy0)) then
@@ -950,7 +1361,7 @@ end do
 do yy = 1, ny
   do xx = 1, nx
     if (a2pgrad1(xx,yy) .ne. miss_dbl) then
-      if (a2lastpos1(xx,yy) .eq. miss_int) then
+      if (a2prepos1(xx,yy) .eq. miss_int) then
         dp1 = a2pgrad1(xx,yy)
         if ( dp1 .gt. thdp )then
           a2pgmax1(xx,yy)  = a2pgrad1(xx, yy)
@@ -964,7 +1375,7 @@ do yy = 1, ny
 end do    
 !-----
 RETURN
-END SUBROUTINE connectc_bn
+END SUBROUTINE connectc_with_pgmax
 
 !*****************************************************************
 FUNCTION longrids_bn(lat, dlon, thdist)
@@ -1683,8 +2094,39 @@ FUNCTION roundx(ix, nx)
 RETURN
 END FUNCTION roundx
 !*****************************************************************
-
-
+FUNCTION ret_dx(ix,ex,nx)
+  implicit none
+  !-- input ---------------
+  integer           ix, ex, nx
+!f2py intent(in)    ix, ex, nx
+  !-- output --------------
+  integer           ret_dx
+!f2py intent(out)   ret_dx
+  !-- calc  ---------------
+  integer           dx
+  !------------------------
+  dx = ex - ix
+  if (abs(dx).le.nx/2)then
+    ret_dx = dx
+  else
+    ret_dx = dx-nx
+  end if
+RETURN
+END FUNCTION ret_dx
+!!*****************************************************************
+SUBROUTINE fortpos2fortxy(pos, nx, x, y)
+  implicit none
+  !------ in -------
+  integer              pos, nx
+  !f2py intent(in)     pos, nx
+  !------ out ------
+  integer              x, y
+  !f2py intent(out)    x, y
+  !-----------------
+  y  = int((pos-1)/nx) +1  ! y= 1, 2, ...
+  x  = pos - nx*(y-1)      ! x= 1, 2, ...
+RETURN
+END SUBROUTINE
 !!*****************************************************************
 !SUBROUTINE mk_a2radsum_saone(a2in, radkm, miss, nx, ny, a2out)
 !implicit none

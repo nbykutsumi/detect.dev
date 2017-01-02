@@ -31,10 +31,10 @@ lhour  = {"6hr": [0,6,12,18]
 
 #iDTime = datetime(2006,1,1,6)
 #eDTime = datetime(2006,12,31,18)
-#iDTime = datetime(2003,12,1,0)
-#eDTime = datetime(2005,1,31,18)
-iDTime = datetime(2004,1,1,0)
-eDTime = datetime(2004,1,31,18)
+iDTime = datetime(2009,1,1,0)
+eDTime = datetime(2009,1,31,18)
+#iDTime = datetime(2004,1,1,0)
+#eDTime = datetime(2004,1,31,18)
 
 dDTime = timedelta(days=1)
 

@@ -1,7 +1,6 @@
 from numpy import *
 from mpl_toolkits.basemap import Basemap
-import ctrack_func
-import ctrack_para
+import util
 import matplotlib.pyplot as plt
 import sys
 ##-------------------------------
@@ -10,13 +9,18 @@ if len(sys.argv)>1:
   season = sys.argv[2]
   region = sys.argv[3]
 else:
-  print "cmd [year] [mon] [region]"
+  print "cmd [year] [season] [region]"
   sys.exit()
 
 #----------------
 
 #- local region ------
-if region =="JPN":
+if region =="GLB":
+  lllat   = -90.
+  urlat   = 90.
+  lllon   = 0.
+  urlon   = 360.
+elif region =="JPN":
   lllat   = 25.
   urlat   = 60.
   lllon   = 110.
@@ -32,19 +36,21 @@ ny    = 180
 nx    = 360
 dlat  = 1.0
 dlon  = 1.0
-
-idir ="/media/disk2/data/ibtracs/v03r04"
-odir_root ="/media/disk2/out/cyclone/tc.bst/%s"%(region)
+ver   = "v03r08"
+#idir ="/media/disk2/data/ibtracs/v03r04"
+idir = "/tank/utsumi/data/ibtracs/%s"%(ver)
+#odir_root ="/media/disk2/out/cyclone/tc.bst/%s"%(region)
+odir_root ="/home/utsumi/temp"
 lhour = [0,6,12,18]
 #------------------
 ddat  = {}
-siname = idir + "/Year.%04d.ibtracs_all.v03r04.csv"%(year)
+siname = idir + "/Year.%04d.ibtracs_all.%s.csv"%(year,ver)
 #-- open -------
 f = open(siname, "r")
 lines = f.readlines()
 f.close()
 #-- init dictionary --
-lmon  = ctrack_para.ret_lmon(season)
+lmon  = util.ret_lmon(season)
 #-- csv data loop -------------
 for line in lines[3:]:
   line     = line.split(",")
@@ -142,10 +148,10 @@ for tcid in ddat.keys():
       #--------------
     else:
       M.plot( (lon1, lon2), (lat1, lat2), linewidth=1, color=scol)
-    #-- text -------------------
-    if hourt in [0,12]:
-      xtext, ytext = M(lon1,lat1)
-      plt.text(xtext,ytext-1, "%02d.%02d.%02d"%(mont,dayt,hourt) ,fontsize=12, rotation=-90)
+    ##-- text -------------------
+    #if hourt in [0,12]:
+    #  xtext, ytext = M(lon1,lat1)
+    #  plt.text(xtext,ytext-1, "%02d.%02d.%02d"%(mont,dayt,hourt) ,fontsize=12, rotation=-90)
 
 
 #-- coastline ---------------
@@ -163,7 +169,7 @@ stitle  = "best track: %04d season:%s "%(year, season)
 axmap.set_title(stitle)
 #--- save ---
 odir   = odir_root
-ctrack_func.mk_dir(odir) 
+util.mk_dir(odir) 
 soname = odir + "/tclines.ibtracs_all.v03r04.%s.%04d.%s.png"%(region,year,season)
 plt.savefig(soname)
 print soname

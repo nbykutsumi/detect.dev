@@ -24,12 +24,12 @@ noleap  = False
 
 #iDTime = datetime(2006,1,1,6)
 #eDTime = datetime(2006,1,31,18)
-#iDTime = datetime(2003,12,1,6)
-#eDTime = datetime(2005,1,31,18)
+#iDTime = datetime(2009,1,1,0)
+#eDTime = datetime(2009,1,31,18)
 
 iDTime = datetime(2004,1,1,0)
-eDTime = datetime(2004,1,31,18)
-
+#eDTime = datetime(2004,1,31,18)
+eDTime = datetime(2004,12,31,18)
 
 dDTime = timedelta(hours=6)
 
@@ -47,7 +47,8 @@ hinc         = 6
 miss_dbl     = -9999.0
 miss_int     = -9999
 endh         = 18
-thdp         = 0.0  #[Pa]
+#thdp         = 0.0  #[Pa]
+exrvort      = cy.exrvort
 thdist_search = 500.0*1000.0   #[m]
 #####################################################
 # functions
@@ -147,9 +148,9 @@ for idt, DTime in enumerate(lDTime):
   #***************************************
   #* names for 0
   #---------------------------------------
-  pgradname0   = cy.path_a2dat("pgrad",  DTime0).srcPath
+  #pgradname0   = cy.path_a2dat("pgrad",  DTime0).srcPath
+  locname0     = cy.path_a2dat("vortlw",  DTime0).srcPath
   preposname0  = cy.path_a2dat("prepos",DTime0).srcPath
-  lastposname0 = cy.path_a2dat("lastpos",DTime0).srcPath  # temp
   #pgmaxname0   = cy.path_a2dat("pgmax",  DTime0).srcPath
   iposname0    = cy.path_a2dat("ipos",   DTime0).srcPath
   idatename0   = cy.path_a2dat("idate",  DTime0).srcPath
@@ -177,7 +178,8 @@ for idt, DTime in enumerate(lDTime):
   mk_dir(idatedir1)
   mk_dir(agedir1)
 
-  pgradname1   = cy.path_a2dat("pgrad",  DTime1).srcPath
+  #pgradname1   = cy.path_a2dat("pgrad",  DTime1).srcPath
+  locname1     = cy.path_a2dat("vortlw", DTime1).srcPath
   preposname1  = cy.path_a2dat("prepos", DTime1).srcPath
   #pgmaxname1   = cy.path_a2dat("pgmax",  DTime1).srcPath
   iposname1    = cy.path_a2dat("ipos",   DTime1).srcPath
@@ -190,15 +192,12 @@ for idt, DTime in enumerate(lDTime):
   #   for 0
   #************
   if ( os.access(iposname0, os.F_OK) ):
-    a2pgrad0   = fromfile(pgradname0,   float32).reshape(ny, nx)
+    #a2pgrad0   = fromfile(pgradname0,   float32).reshape(ny, nx)
+    a2loc0     = fromfile(locname0,     float32).reshape(ny, nx)
     a2ua0      = fromfile(uaname0,      float32).reshape(ny, nx)
     a2va0      = fromfile(vaname0,      float32).reshape(ny, nx)
     #--
-    try:   # temp 
-      a2prepos0 = fromfile(preposname0, int32).reshape(ny, nx)
-    except IOError:
-      a2prepos0 = fromfile(lastposname0, int32).reshape(ny, nx)
-
+    a2prepos0 = fromfile(preposname0, int32).reshape(ny, nx)
     #a2pgmax0   = fromfile(pgmaxname0,   float32).reshape(ny, nx)
     a2ipos0    = fromfile(iposname0,    int32).reshape(ny, nx)
     a2idate0   = fromfile(idatename0,   int32).reshape(ny, nx)
@@ -210,7 +209,8 @@ for idt, DTime in enumerate(lDTime):
       a2age0    = fromfile(timename0,   int32).reshape(ny, nx)
  
   elif ( counter == 1):
-    a2pgrad0    = array(ones(ny*nx).reshape(ny,nx)*miss_dbl, float32)
+    #a2pgrad0    = array(ones(ny*nx).reshape(ny,nx)*miss_dbl, float32)
+    a2loc0     = array(ones(ny*nx).reshape(ny,nx)*miss_dbl, float32)
     a2ua0      = array(zeros(ny*nx).reshape(ny,nx), float32)
     a2va0      = array(zeros(ny*nx).reshape(ny,nx), float32)
     #--
@@ -226,23 +226,45 @@ for idt, DTime in enumerate(lDTime):
   #------------
   #   for 1
   #************
-  a2pgrad1     = fromfile(pgradname1, float32).reshape(ny, nx)
+  #a2pgrad1     = fromfile(pgradname1, float32).reshape(ny, nx)
+  a2loc1       = fromfile(locname1, float32).reshape(ny, nx)
 
 
   #*********************
   # mask high altitudes
-  a2pgrad0   = ma.masked_where(a2mask_topo.mask, a2pgrad0).filled(miss_dbl)
-  a2pgrad1   = ma.masked_where(a2mask_topo.mask, a2pgrad1).filled(miss_dbl)
+  #a2pgrad0   = ma.masked_where(a2mask_topo.mask, a2pgrad0).filled(miss_dbl)
+  #a2pgrad1   = ma.masked_where(a2mask_topo.mask, a2pgrad1).filled(miss_dbl)
+
+  a2loc0   = ma.masked_where(a2mask_topo.mask, a2loc0).filled(miss_dbl)
+  a2loc1   = ma.masked_where(a2mask_topo.mask, a2loc1).filled(miss_dbl)
+
 
   #****************************************
   # connectc
   ##***************************************
-  ctrackout = detect_fsub.connectc_bn_nopgmax(\
-     a2pgrad0.T, a2pgrad1.T, a2ua0.T, a2va0.T\
-     , a2ipos0.T, a2idate0.T, a2age0.T\
-     , a1lon, a1lat, thdp, thdist_search, hinc, miss_dbl, miss_int\
+  #ctrackout = detect_fsub.connectc_bn_nopgmax(\
+  #   a2pgrad0.T, a2pgrad1.T, a2ua0.T, a2va0.T\
+  #   , a2ipos0.T, a2idate0.T, a2age0.T\
+  #   , a1lon, a1lat, thdp, thdist_search, hinc, miss_dbl, miss_int\
+  #   , year1, mon1, day1, hour1\
+  #   )
+
+  #ctrackout = detect_fsub.connectc_vort_inertia(\
+  #   a2pgrad0.T, a2pgrad1.T, a2ua0.T, a2va0.T\
+  #   , a2prepos0.T, a2ipos0.T, a2idate0.T, a2age0.T\
+  #   , a1lon, a1lat, exrvort, thdist_search, hinc, miss_dbl, miss_int\
+  #   , year1, mon1, day1, hour1\
+  #   )
+
+  ctrackout = detect_fsub.connectc_vort_inertia(\
+     a2loc0.T, a2loc1.T, a2ua0.T, a2va0.T\
+     , a2prepos0.T, a2ipos0.T, a2idate0.T, a2age0.T\
+     , a1lon, a1lat, exrvort, thdist_search, hinc, miss_dbl, miss_int\
      , year1, mon1, day1, hour1\
      )
+
+
+
 
 
   a2prepos1 = array(ctrackout[0].T, int32)

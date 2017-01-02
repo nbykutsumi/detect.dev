@@ -21,10 +21,11 @@ noleap  = False
 #res     = "128x256"
 #noleap  = True
 
-#iDTime = datetime(2003,12,1,0)
-#eDTime = datetime(2005,1,31,18)
+#iDTime = datetime(2009,1,1,0)
+#eDTime = datetime(2009,1,31,18)
 iDTime = datetime(2004,1,1,0)
-eDTime = datetime(2004,1,31,18)
+#eDTime = datetime(2004,1,31,18)
+eDTime = datetime(2004,12,31,18)
 
 dDTime = timedelta(hours=6)
 

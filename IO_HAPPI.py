@@ -35,7 +35,7 @@ class IO_Happi(Happi):
         Var  = self.dvar[var]
         return self.load_day(Var, DTime)
 
-    def Load_mon(self, var, Year, Mon):
+    def Load_monSfc(self, var, Year, Mon):
         Var  = self.dvar[var]
         return self.load_mon(Var, Year, Mon)
 

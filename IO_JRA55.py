@@ -11,7 +11,9 @@ class IO_Jra55(Jra55):
                ,"va"   :"vgrd"
                ,"slp"  :"PRMSL"
                ,"prcp" :"APCP"
+               ,"sst"  :"BRTMP"
                ,"topo" :"topo"
+               ,"land" :"land"
                }
 
     def Load_6hrPlev(self, var, DTime, plev):

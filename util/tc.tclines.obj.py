@@ -12,28 +12,21 @@ import Cyclone
 import util_para
 import detect_func
 #--------------------------------------
-iyear = 2006
-eyear = 2006
+iyear = 2004
+eyear = 2004
 lyear = range(iyear,eyear+1)
-lseason = [1]
-iday  = False
-eday  = False
+lseason = ["ALL"]
+#lseason = [2]
 
-#prj   = "JRA55"
-##model = "anl_p125"
-#model = prj
-#run   = ""
-#res   = "bn"
+prj     = "JRA55"
+model   = "__"
+run     = "__"
+res     = "145x288"
 
-#prj     = "JRA55"
-#model   = prj
-#run     = ""
-#res     = "bn"
-
-prj     = "HAPPI"
-model   = "MIROC5"
-run     = "C20-ALL-001"
-res     = "128x256"
+#prj     = "HAPPI"
+#model   = "MIROC5"
+#run     = "C20-ALL-001"
+#res     = "128x256"
 
 region= "GLOB"
 #singleday = True
@@ -48,8 +41,8 @@ ny      = cy.ny
 nx      = cy.nx
 
 
-thrvort   = cy.thrvort
-thpgrad   = cy.thpgrad
+thrvort   = cy.tcrvort
+#thpgrad   = cy.thpgrad
 thwcore   = cy.thwcore
 thdura    = cy.thdura
 thinitsst = cy.thsst
@@ -64,7 +57,7 @@ miss_int= -9999
 #*************************************
 def mk_dtcloc(year,mon):
   da1       = {}
-  lstype  = ["dura","pgrad","nowpos","nextpos","time","iedist","rvort","dtlow","dtmid","dtup","initsst","initland"]
+  lstype  = ["dura","pgrad","nowpos","nextpos","time","iedist","vortlw","dtlow","dtmid","dtup","initsst","initland"]
   for stype in lstype:
      da1[stype]  = cy.load_clist(stype, year, mon)
 
@@ -78,7 +71,8 @@ def mk_dtcloc(year,mon):
     nowpos      = da1["nowpos"  ][i]
     time        = da1["time"    ][i]
     iedist      = da1["iedist"  ][i]
-    rvort       = abs(da1["rvort"   ][i])
+    #rvort       = abs(da1["rvort"   ][i])
+    rvort       = da1["vortlw"  ][i]
     dtlow       = da1["dtlow"   ][i]
     dtmid       = da1["dtmid"   ][i]
     dtup        = da1["dtup"    ][i]
@@ -97,37 +91,37 @@ def mk_dtcloc(year,mon):
 
     #---- dura -------
     if dura < thdura:
-      print "dura",dura,"<",thdura
+      #print "dura",dura,"<",thdura
       continue
-    #---- thpgrad ----
-    if pgrad < thpgrad:
-      print "pgrad",pgrad,"<",thpgrad
-      continue
+    ##---- thpgrad ----
+    #if pgrad < thpgrad:
+    #  #print "pgrad",pgrad,"<",thpgrad
+    #  continue
 
     #---- thrvort ----
     if rvort < thrvort:
-      print "rvort",rvort,"<",thrvort
+      #print "rvort",rvort,"<",thrvort
       continue
 
     #---- thwcore ----
     if dtup + dtmid + dtlow < thwcore:
-      print "thwcore",dtup+dtmid+dtlow,"<",thwcore
+      #print "thwcore",dtup+dtmid+dtlow,"<",thwcore
       continue
 
     #---- initsst ----
     if initsst < thinitsst:
-      print "initsst",initsst,"<",thinitsst
+      #print "initsst",initsst,"<",thinitsst
       continue 
 
     #---- initland ----
     if initland > 0.0:
-      print "initland",initland,">",0.0
+      #print "initland",initland,">",0.0
       continue 
 
 
 #    #---- iedist -----
 #    if iedist < dura*unitdist:
-#      print "iedist",iedist,"<",dura*unitdist
+#      #print "iedist",iedist,"<",dura*unitdist
 #      continue
 
     #---- time ------
@@ -151,20 +145,19 @@ ltrack     = deque([])
 ##############
 for season in lseason:
   for year in lyear:
-    lmon = util_para.ret_lmon(season)
+    lmon = util.ret_lmon(season)
     for mon in lmon:
       print year,mon   
       dtcloc =  mk_dtcloc(year,mon)
       #--------
-      if iday == False:
-        iday = 1
-      if eday == False:
-        eday = calendar.monthrange(year,mon)[1]
+      iday = 1
+      eday = calendar.monthrange(year,mon)[1]
       #--------
       for day in range(iday, eday+1):
         print "tracklines",model,year, mon, day
         for hour in [0, 6, 12, 18]:
           #---------------------------
+          print year,mon,day,"eday=",eday
           DTime  = datetime(year,mon,day,hour)
   
           #-- check exc existence ----
