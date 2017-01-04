@@ -8,15 +8,15 @@ import Fig
 calcflag  = True
 #calcflag  = False
 
-#prj     = "JRA55"
-#model   = prj
-#run     = ""
-#res     = "bn"
+prj     = "JRA55"
+model   = "__"
+run     = "__"
+res     = "145x288"
 
-prj     = "HAPPI"
-model   = "MIROC5"
-run     = "C20-ALL-001"
-res     = "128x256"
+#prj     = "HAPPI"
+#model   = "MIROC5"
+#run     = "C20-ALL-001"
+#res     = "128x256"
 
 radkm = 300.  # (km)
 

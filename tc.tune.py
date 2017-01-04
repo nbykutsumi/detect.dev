@@ -18,8 +18,8 @@ res     = "145x288"
 
 #iyear     = 1980
 #eyear     = 1999
-iYear     = 2004
-eYear     = 2004
+iYear     = 2001
+eYear     = 2010
 lMon      = [1,2,3,4,5,6,7,8,9,10,11,12]
 #lMon      = [1]
 lHour     = [0,6,12,18]

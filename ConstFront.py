@@ -3,8 +3,8 @@ import sys
 myname = "ConstFront.py"
 
 class Const(object):
-  def __init__(self, model="JRA55", res="bn"):
-    if (model,res) == ("JRA55","bn"):
+  def __init__(self, prj="JRA55", model="__",run="__", res="145x288"):
+    if (prj,res) == ("JRA55","145x288"):
       self.thM1t = 0.30  # K/100km/100km
 #      self.thM2t = 1.4   # K/100km
       self.thM2t = 0.6   # K/100km
@@ -13,21 +13,21 @@ class Const(object):
       self.thM2q = 0.9*1.0e-3   # temporary 
       self.thgrids= 5/1.25
 
-    elif (model,res) == ("JRA25","sa.one"):
+    elif (prj,res) == ("JRA25","sa.one"):
       self.thM1t = 0.30  # K/100km/100km
       self.thM2t = 1.0   # K/100km
       self.thM1q = 2.0*1.0e-4   # temporary 
       self.thM2q = 1.5*1.0e-3   # temporary 
       self.thgrids= 5
 
-    elif (model,res) == ("JRA25","bn"):
+    elif (prj,res) == ("JRA25","bn"):
       self.thM1t = 0.26  # K/100km/100km
       self.thM2t = 1.0   # K/100km
       self.thM1q = 1.7*1.0e-4   # temporary 
       self.thM2q = 1.2*1.0e-3   # temporary 
       self.thgrids= 5/1.25
 
-    elif (model,res) == ("MIROC5","128x256"):
+    elif (prj,model,res) == ("HAPPI","MIROC5","128x256"):
       self.thM1t = 0.30  # K/100km/100km
 #      self.thM2t = 1.4   # K/100km
       self.thM2t = 0.6   # K/100km
@@ -37,7 +37,7 @@ class Const(object):
       self.thgrids= 5/1.25
 
     else:
-      print myname,":check model,var",model,var
+      print myname,":check model,res",model,res
       sys.exit()
 
     #-- orog --

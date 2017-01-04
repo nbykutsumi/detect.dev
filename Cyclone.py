@@ -530,13 +530,18 @@ class Cyclone_2D(Cyclone):
   #  self.tctype    = tctype
   #  self.res       = res
 
-  def __init__(self, iYM, eYM, model="JRA55", res="bn", tctype="bst",miss=-9999.):
-    Cyclone.__init__(self, model=model, res=res)
+  #def __init__(self, iYM, eYM, model="JRA55", res="bn", tctype="bst",miss=-9999.):
+  def __init__(self, iYM, eYM, cfg, tctype, miss=-9999.):
+    """
+    cfg : Dictionary with "prj", "model", "run", "res"
+    tctype = "bst" or "obj"
+    """
+    Cyclone.__init__(self, cfg)
     self.instDict  = self.mkInstDictC(iYM, eYM, varname="pgrad",tctype=tctype)
     self.a2miss    = ones([self.ny, self.nx], float32)*miss
     self.miss      = miss
     self.tctype    = tctype
-    self.res       = res
+    self.res       = cfg["res"]
 
   def mk_a2tc(self, DTime):
     if len(self.instDict.dictTC[DTime]) >0:

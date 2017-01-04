@@ -1,24 +1,33 @@
 from numpy import *
 from datetime import datetime
+import util
 import detect_func
 import calendar
 import Cyclone
+import config_func
 
-iYear = 2010
-eYear = 2014
+iYear = 2004
+eYear = 2004
 lYear = range(iYear,eYear+1)
 lMon  = range(1,12+1)
 lHour = [0,6,12,18]
 
-model  = "JRA55"
-res    = "bn"
+prj    = "JRA55"
+model  = "__"
+run    = "__"
+res    = "145x288"
 #tctype = "obj"
 tctype = "bst"
+
+cfg    = config_func.config_func(prj, model, run)
+cfg["res"] = res
 
 for Year in lYear:
   for Mon in lMon:
     #--- init ----
-    Cy   = Cyclone.Cyclone_2D(Year,Mon,model=model, res=res, tctype=tctype)
+    iYM  = [Year,Mon]
+    eYM  = iYM
+    Cy   = Cyclone.Cyclone_2D(iYM, eYM, cfg, tctype)
     #-------------
     iDay = 1
     eDay = calendar.monthrange(Year,Mon)[1]

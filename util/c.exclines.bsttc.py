@@ -36,20 +36,32 @@ unitdist  = 10.0 # km / hour
 #eDTime = datetime(2004,1,14,18)
 iDTime = datetime(2004,1,1,0)
 eDTime = datetime(2004,12,31,18)
+
 dDTime = timedelta(hours=6)
 lDTime = util.ret_lDTime(iDTime, eDTime, dDTime)
 
-#thdura = 48
-thdura = 36
-region = "GLOB"
-#region = "JPN"
-#region = "CAM"
+
+## test
+#iDTime = datetime(2004,12,1,0)
+##eDTime = datetime(2004,1,31,18)
+#eDTime = datetime(2004,12,31,18)
+#dDTime = timedelta(hours=6)
+#lDTime = lDTime + util.ret_lDTime(iDTime, eDTime, dDTime)
 
 iom    = IO_Master.IO_Master(prj, model, run, res)
 bst    = BestTrackTC.BestTrack("IBTrACS")
 cfg = config_func.config_func(prj=prj, model=model, run=run)
 iom = IO_Master.IO_Master(prj, model, run, res)
 cy  = Cyclone.Cyclone(cfg=cfg)
+
+#thdura = 48
+thdura = 36
+#thdura = 24
+thpgrad = cy.thpgrad
+region = "GLOB"
+#region = "JPN"
+#region = "CAM"
+#region = "AUS"
 #----------------------------------
 #iclass_min = 2
 #iclass_min = 1
@@ -124,7 +136,7 @@ def mk_dexcloc(year,mon):
   nlist    = len(da1["dura"])
   for i in range(nlist):
     dura        = da1["dura"     ][i]
-    #pgrad       = da1["pgrad"    ][i]
+    pgrad       = da1["pgrad"    ][i]
     rvort       = da1["vortlw"    ][i]
     nowpos      = da1["nowpos"   ][i]
     time        = da1["time"     ][i]
@@ -142,12 +154,12 @@ def mk_dexcloc(year,mon):
     #---- dura -------
     if dura < thdura:
       continue
-    ##---- thpgrad ----
-    #if pgrad < thpgrad:
-    #  continue
-    #---- thrvort ----
-    if rvort < exrvort:
+    #---- thpgrad ----
+    if pgrad < thpgrad:
       continue
+    #---- thrvort ----
+    #if rvort < exrvort:
+    #  continue
 
     #---- iedist -----
     if iedist < dura*unitdist:
@@ -170,13 +182,10 @@ def mk_dexcloc(year,mon):
 #************************************
 
 #----------------------------
-#thpgrad = cy.thpgrad
-#dpgradrange  = {0:[thpgrad, 1.e+10]}
-#lclass  = dpgradrange.keys()[2:]
 
 exrvort = cy.exrvort
 drvortrange  = {0:[exrvort, 1.e+10]
-              , 1:[exrvort*0.5, exrvort]
+              , 1:[0, exrvort]
               , 2:[exrvort, exrvort*1.5]
               , 3:[exrvort*1.5, 1.e+10]
                }
@@ -341,7 +350,7 @@ for iclass in lclass[1:]:
       M.plot( (lon1, lon2), (lat1, lat2), linewidth=1, color=scol)
 
     ##-- text -----------
-    #if hour in [0,12]:
+    #if hour in [0,6,12,18]:
     #  xtext, ytext = M(lon1,lat1)
     #  plt.text(xtext,ytext-1, "%02d.%02d"%(day,hour) ,fontsize=12, rotation=-90)
 

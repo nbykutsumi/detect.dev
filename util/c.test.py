@@ -32,11 +32,11 @@ singleday = False
 unitdist  = 10.0 # km / hour
 #unitdist  = 150.0 # km / hour  # test
 #----------------
-#iDTime = datetime(2004,1,8,0)
-#eDTime = datetime(2004,1,14,18)
-iDTime = datetime(2004,6,1,0)
+iDTime = datetime(2004,1,8,0)
+eDTime = datetime(2004,1,14,18)
+#iDTime = datetime(2004,6,1,0)
 #eDTime = datetime(2004,1,31,18)
-eDTime = datetime(2004,8,31,18)
+#eDTime = datetime(2004,8,31,18)
 dDTime = timedelta(hours=6)
 lDTime = util.ret_lDTime(iDTime, eDTime, dDTime)
 

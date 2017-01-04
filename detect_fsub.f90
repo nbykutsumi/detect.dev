@@ -706,6 +706,76 @@ end do
 RETURN
 END SUBROUTINE findcyclone_bn
 
+!*****************************************************************
+SUBROUTINE find_localmax(a2var, a1lat, a1lon, miss_in, miss_out, nx, ny, a2loc)
+  implicit none
+  !** for input ---------------------------------------------
+  integer                                           nx, ny
+  real,dimension(nx ,ny)                         :: a2var
+!f2py intent(in)                                    a2var
+  real,dimension(ny)                             :: a1lat
+!f2py intent(in)                                    a1lat
+  real,dimension(nx)                             :: a1lon
+!f2py intent(in)                                    a1lon
+  real                                              miss_in, miss_out
+!f2py intent(in)                                    miss_in, miss_out
+  !** for output --------------------------------------------
+  real,dimension(nx, ny)                         :: a2loc
+!f2py intent(out)                                   a2loc
+  !** for calc  ---------------------------------------------
+  integer                                           ix, iy, ik
+  integer                                           iix, iiy, iiix, iiiy
+  real                                              var
+  real                                              lat_first, dlat, dlon
+  !real                                           :: thdist = 300.0*1000.0  ! (300km)
+  real,dimension(8)                              :: a1ambi
+
+  !----------------------------------------------------------
+lat_first = a1lat(1)
+dlat      = a1lat(2) - a1lat(1)
+dlon      = a1lon(2) - a1lon(1)
+
+!------------------
+a2loc = a2var
+do iy = 1, ny
+  do ix = 1, nx
+    var = a2var(ix, iy)
+    if (var .ne. miss_in) then
+      !---------------
+      ! ambient data
+      !---------------
+      ik = 0
+      do iiy = iy-1, iy+1, 2
+        do iix = ix -1, ix+1
+          ik = ik +1
+          call ixy2iixy(nx, ny, iix, iiy, iiix, iiiy)
+          a1ambi(ik) = a2var(iiix, iiiy)
+        end do
+      end do
+      iiy = iy
+      do iix = ix-1, ix+1, 2
+        ik = ik +1
+        call ixy2iixy(nx, ny, iix, iiy, iiix, iiiy)
+        a1ambi(ik) = a2var(iiix, iiiy)
+      end do
+      !----------------
+      ! compare to the ambient grids
+      !----------------
+      do ik = 1, 8
+        if ( var .le. a1ambi(ik) )  then
+          a2loc(ix,iy) = miss_out
+          exit
+        end if
+      end do
+      !----------------
+    end if
+    !---------------
+  end do
+end do
+
+RETURN
+END SUBROUTINE find_localmax
+
 !!**************************************************************
 SUBROUTINE connectc_vort_inertia(&
         &  a2vortlw0, a2vortlw1, a2ua0, a2va0&

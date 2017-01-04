@@ -24,12 +24,16 @@ noleap  = False
 
 #iDTime = datetime(2006,1,1,6)
 #eDTime = datetime(2006,1,31,18)
-#iDTime = datetime(2009,1,1,0)
-#eDTime = datetime(2009,1,31,18)
+#iDTime = datetime(2004,1,4,0)
+#eDTime = datetime(2004,8,31,18)
 
-iDTime = datetime(2004,1,1,0)
-#eDTime = datetime(2004,1,31,18)
-eDTime = datetime(2004,12,31,18)
+#iDTime = datetime(2001,1,1,0)
+#eDTime = datetime(2004,8,31,18)
+
+iDTime = datetime(2004,8,1,0)
+eDTime = datetime(2015,8,31,18)
+
+
 
 dDTime = timedelta(hours=6)
 
@@ -47,7 +51,7 @@ hinc         = 6
 miss_dbl     = -9999.0
 miss_int     = -9999
 endh         = 18
-#thdp         = 0.0  #[Pa]
+thpgrad      = cy.thpgrad #[Pa]
 exrvort      = cy.exrvort
 thdist_search = 500.0*1000.0   #[m]
 #####################################################
@@ -148,7 +152,7 @@ for idt, DTime in enumerate(lDTime):
   #***************************************
   #* names for 0
   #---------------------------------------
-  #pgradname0   = cy.path_a2dat("pgrad",  DTime0).srcPath
+  pgradname0   = cy.path_a2dat("pgrad",  DTime0).srcPath
   locname0     = cy.path_a2dat("vortlw",  DTime0).srcPath
   preposname0  = cy.path_a2dat("prepos",DTime0).srcPath
   #pgmaxname0   = cy.path_a2dat("pgmax",  DTime0).srcPath
@@ -178,7 +182,7 @@ for idt, DTime in enumerate(lDTime):
   mk_dir(idatedir1)
   mk_dir(agedir1)
 
-  #pgradname1   = cy.path_a2dat("pgrad",  DTime1).srcPath
+  pgradname1   = cy.path_a2dat("pgrad",  DTime1).srcPath
   locname1     = cy.path_a2dat("vortlw", DTime1).srcPath
   preposname1  = cy.path_a2dat("prepos", DTime1).srcPath
   #pgmaxname1   = cy.path_a2dat("pgmax",  DTime1).srcPath
@@ -192,7 +196,7 @@ for idt, DTime in enumerate(lDTime):
   #   for 0
   #************
   if ( os.access(iposname0, os.F_OK) ):
-    #a2pgrad0   = fromfile(pgradname0,   float32).reshape(ny, nx)
+    a2pgrad0   = fromfile(pgradname0,   float32).reshape(ny, nx)
     a2loc0     = fromfile(locname0,     float32).reshape(ny, nx)
     a2ua0      = fromfile(uaname0,      float32).reshape(ny, nx)
     a2va0      = fromfile(vaname0,      float32).reshape(ny, nx)
@@ -209,7 +213,7 @@ for idt, DTime in enumerate(lDTime):
       a2age0    = fromfile(timename0,   int32).reshape(ny, nx)
  
   elif ( counter == 1):
-    #a2pgrad0    = array(ones(ny*nx).reshape(ny,nx)*miss_dbl, float32)
+    a2pgrad0    = array(ones(ny*nx).reshape(ny,nx)*miss_dbl, float32)
     a2loc0     = array(ones(ny*nx).reshape(ny,nx)*miss_dbl, float32)
     a2ua0      = array(zeros(ny*nx).reshape(ny,nx), float32)
     a2va0      = array(zeros(ny*nx).reshape(ny,nx), float32)
@@ -226,14 +230,15 @@ for idt, DTime in enumerate(lDTime):
   #------------
   #   for 1
   #************
-  #a2pgrad1     = fromfile(pgradname1, float32).reshape(ny, nx)
+  a2pgrad1     = fromfile(pgradname1, float32).reshape(ny, nx)
   a2loc1       = fromfile(locname1, float32).reshape(ny, nx)
 
 
   #*********************
-  # mask high altitudes
-  #a2pgrad0   = ma.masked_where(a2mask_topo.mask, a2pgrad0).filled(miss_dbl)
-  #a2pgrad1   = ma.masked_where(a2mask_topo.mask, a2pgrad1).filled(miss_dbl)
+  # mask pgrad < thpgrad and high altitudes
+  #*********************
+  a2loc0   = ma.masked_where(a2pgrad0 < thpgrad, a2loc0)
+  a2loc1   = ma.masked_where(a2pgrad1 < thpgrad, a2loc1)
 
   a2loc0   = ma.masked_where(a2mask_topo.mask, a2loc0).filled(miss_dbl)
   a2loc1   = ma.masked_where(a2mask_topo.mask, a2loc1).filled(miss_dbl)
@@ -262,10 +267,6 @@ for idt, DTime in enumerate(lDTime):
      , a1lon, a1lat, exrvort, thdist_search, hinc, miss_dbl, miss_int\
      , year1, mon1, day1, hour1\
      )
-
-
-
-
 
   a2prepos1 = array(ctrackout[0].T, int32)
   a2ipos1    = array(ctrackout[1].T, int32)

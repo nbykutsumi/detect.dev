@@ -42,7 +42,7 @@ nx      = cy.nx
 
 
 thrvort   = cy.tcrvort
-#thpgrad   = cy.thpgrad
+thpgrad   = cy.thpgrad
 thwcore   = cy.thwcore
 thdura    = cy.thdura
 thinitsst = cy.thsst

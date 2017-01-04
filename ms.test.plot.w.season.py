@@ -30,19 +30,36 @@ def load_mon(var, Year, Mon):
 
 #------------------------
 
+#Uref = vstack([
+#        array([load_mon("q.ugrd",Year,Mon)
+#            for Mon in [6,7,8,9]]).mean(axis=0)[:ny/2]
+#       ,array([load_mon("q.ugrd",Year,Mon)
+#            for Mon in [1,2,3,12]]).mean(axis=0)[ny/2:]
+#            ])
+#
+#Vref = vstack([
+#        array([load_mon("q.vgrd",Year,Mon)
+#            for Mon in [6,7,8,9]]).mean(axis=0)[:ny/2]
+#       ,array([load_mon("q.vgrd",Year,Mon)
+#            for Mon in [1,2,3,12]]).mean(axis=0)[ny/2:]
+#            ])
+
 Uref = vstack([
-        array([load_mon("q.ugrd",Year,Mon)
+        array([load_mon("ugrd",Year,Mon)
             for Mon in [6,7,8,9]]).mean(axis=0)[:ny/2]
-       ,array([load_mon("q.ugrd",Year,Mon)
+       ,array([load_mon("ugrd",Year,Mon)
             for Mon in [1,2,3,12]]).mean(axis=0)[ny/2:]
             ])
 
 Vref = vstack([
-        array([load_mon("q.vgrd",Year,Mon)
+        array([load_mon("vgrd",Year,Mon)
             for Mon in [6,7,8,9]]).mean(axis=0)[:ny/2]
-       ,array([load_mon("q.vgrd",Year,Mon)
+       ,array([load_mon("vgrd",Year,Mon)
             for Mon in [1,2,3,12]]).mean(axis=0)[ny/2:]
             ])
+
+
+
 
 a3var = empty([len(lDTime), ny, nx])
 
@@ -50,8 +67,8 @@ for i, DTime in enumerate(lDTime):
     q  = load_var("spfh", DTime)
     a3var[i] = \
         sqrt(
-         (load_var("ugrd",DTime) *q - Uref)**2. \
-        +(load_var("vgrd",DTime) *q - Vref)**2. \
+         (load_var("ugrd",DTime) - Uref)**2. \
+        +(load_var("vgrd",DTime) - Vref)**2. \
         )
 
 lat = 35

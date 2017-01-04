@@ -11,17 +11,17 @@ import ConstFront
 #from dtanl_fsub import *
 from front_fsub import *
 #-----------------------
-#prj     = "JRA55"
-#model   = prj
-#run     = ""
-#res     = "bn"
-#noleap  = False
+prj     = "JRA55"
+model   = "__"
+run     = "__"
+res     = "145x288"
+noleap  = False
 
-prj     = "HAPPI"
-model   = "MIROC5"
-run     = "C20-ALL-001"
-res     = "128x256"
-noleap  = True
+#prj     = "HAPPI"
+#model   = "MIROC5"
+#run     = "C20-ALL-001"
+#res     = "128x256"
+#noleap  = True
 
 #ltq    = ["t","q"]
 ltq    = ["t"]
@@ -29,8 +29,8 @@ miss  = -9999.0
 
 dvar  = {"t":"ta", "q":"q"}
 
-iDTime = datetime(2006,1,1,6)
-eDTime = datetime(2006,1,31,18)
+iDTime = datetime(2001,1,1,0)
+eDTime = datetime(2015,8,31,18)
 dDTime = timedelta(hours=6)
 
 ret_lDTime = {False: util.ret_lDTime

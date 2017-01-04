@@ -7,5 +7,8 @@ def config_func(prj, model, run):
 
     cfg["rootDir"] = rootDir
     cfg["baseDir"] = baseDir
+    cfg["prj"    ] = prj
+    cfg["model"  ] = model
+    cfg["run"    ] = run
 
     return cfg

@@ -1,6 +1,7 @@
 from numpy import *
 from detect_fsub import *
-from myfunc_fsub import *
+#from myfunc_fsub import *
+from myfunc.regrid.upscale_fsub import *
 from datetime import datetime, timedelta
 import ctrack_func
 import front_func
@@ -12,10 +13,10 @@ import Reanalysis
 from Chart import chart
 from Front import front
 miss   = -9999.
-#tqtype = "t"
-tqtype = "q"
+tqtype = "t"
+#tqtype = "q"
 model  = "JRA55"
-res    = "bn"
+res    = "145x288"
 ra     = Reanalysis.Reanalysis(model=model, res=res)
 front  = front(model=model,res=res)
 ny,nx  = ra.ny, ra.nx

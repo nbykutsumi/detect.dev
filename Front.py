@@ -5,7 +5,6 @@ from detect_fsub import *
 import os
 import socket
 import ConstFront
-import Reanalysis
 #****************************************************
 def read_txtlist(iname):
   f = open(iname, "r")
@@ -19,10 +18,12 @@ def read_txtlist(iname):
 class Front(object):
   def __init__(self, cfg, miss=-9999.):
     #----------------
+    prj   = cfg["prj"  ]
     model = cfg["model"]
+    run   = cfg["run"  ]
     res   = cfg["res"  ] 
 
-    C  = ConstFront.Const(model=model, res=res)
+    C  = ConstFront.Const(prj=prj, model=model, run=run, res=res)
 
     self.res     = res
     self.rootDir = cfg["rootDir"]
