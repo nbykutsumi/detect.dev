@@ -6,11 +6,12 @@ from myfunc.regrid import Regrid
 #from cf import biIntp
 
 class TagRegrid(Tag):
-  def __init__(self, model="JRA55", LatOut=False, LonOut=False, miss=-9999.):
+#  def __init__(self, model="JRA55", LatOut=False, LonOut=False, miss=-9999.):
+  def __init__(self, cfg, LatOut=False, LonOut=False, miss=-9999.):
     """
     LatOut and LonOut can be used to extract regional domain
     """
-    Tag.__init__(self, model=model, res="bn", miss=miss)
+    Tag.__init__(self, cfg, miss=miss)
     self.LatIn   = self.Front.Lat
     self.LonIn   = self.Front.Lon
     self.LatOut  = LatOut

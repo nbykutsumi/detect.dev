@@ -7,15 +7,14 @@ import ConstMask
 import sys, copy
 
 class Tag(ConstMask.Const):
-  def __init__(self, model="JRA55", res="bn", miss=-9999.):
+  #def __init__(self, model="JRA55", res="bn", miss=-9999.):
+  def __init__(self, cfg, miss=-9999.):
 
-    ConstMask.Const.__init__(self, model, res)
+    ConstMask.Const.__init__(self, cfg)
 
-    self.model   = model
-    self.res     = res
     self.miss    = miss
-    self.Front   = Front.Front(model, res, miss)
-    self.Monsoon = Monsoon.MonsoonMoist(model=model, res=res, var="PWAT")
+    self.Front   = Front.Front(cfg, miss)
+    #self.Monsoon = Monsoon.MonsoonMoist(model=model, res=res, var="PWAT")
     self.Lat     = self.Front.Lat
     self.Lon     = self.Front.Lon
   #def init_cyclone(self, Year, Mon, tctype="bst"):
@@ -25,11 +24,12 @@ class Tag(ConstMask.Const):
   #  self.Cyclone = Cyclone.Cyclone_2D(Year, Mon, tctype=tctype, miss=self.miss)
   #  return self
 
-  def init_cyclone(self, iYM, eYM, model="JRA55", tctype="bst"):
+  #def init_cyclone(self, iYM, eYM, model="JRA55", tctype="bst"):
+  def init_cyclone(self, iYM, eYM, cfg, tctype="bst"):
     """
     tctype: "obj", "bst"
     """
-    self.Cyclone = Cyclone.Cyclone_2D(iYM, eYM, model=model, tctype=tctype, miss=self.miss)
+    self.Cyclone = Cyclone.Cyclone_2D(iYM, eYM, cfg, tctype=tctype, miss=self.miss)
     return self
 
 

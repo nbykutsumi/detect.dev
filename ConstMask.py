@@ -1,5 +1,5 @@
 class Const(object):
-  def __init__(self, model, res):
+  def __init__(self, cfg):
     self.dictRadkm = {\
                       "tc"     : 1000.0\
                      ,"c"      : 1000.0\

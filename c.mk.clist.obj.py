@@ -25,8 +25,8 @@ noleap  = False
 #eDTime = datetime(2006,1,31,18)
 #iDTime = datetime(2004,1,4,0)
 #eDTime = datetime(2004,1,18,18)
-iDTime = datetime(2004,1,1,0)
-eDTime = datetime(2004,12,31,18)
+iDTime = datetime(2001,1,1,0)
+eDTime = datetime(2015,8,31,18)
 
 dDTime = timedelta(hours=6)
 
